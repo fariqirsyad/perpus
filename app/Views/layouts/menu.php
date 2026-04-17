@@ -11,6 +11,14 @@
         </a>
     </li>
 
+    <?php if (session('role') == 'admin') : ?>
+    <li class="nav-item">
+        <a class="nav-link" href="<?= base_url('buku') ?>">
+            <i class="bi bi-book"></i> <span>Kelola Buku</span>
+        </a>
+    </li>
+<?php endif; ?>
+
      <?php if (session()->get('role') == 'admin' || session()->get('role') == 'petugas') : ?>
         <li class="nav-item">
             <a class="nav-link" href="<?= base_url('/peminjaman') ?>">

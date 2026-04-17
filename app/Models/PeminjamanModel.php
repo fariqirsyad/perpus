@@ -6,15 +6,19 @@ class PeminjamanModel extends Model {
     protected $primaryKey = 'id_pinjam';
     protected $allowedFields = ['id_user', 'id_buku', 'tgl_pinjam', 'tgl_kembali', 'tgl_dikembalikan', 'denda', 'status'];
 
-    public function getPeminjaman($keyword = null) {
-        $builder = $this->table('peminjaman')
-            ->select('peminjaman.*, users.nama, buku.judul')
+    // Kita gunakan nama searchPeminjaman agar sesuai dengan Controller
+    public function searchPeminjaman($keyword = null) {
+        $builder = $this->select('peminjaman.*, users.nama, buku.judul')
             ->join('users', 'users.id = peminjaman.id_user')
             ->join('buku', 'buku.id_buku = peminjaman.id_buku');
         
         if ($keyword) {
-            $builder->like('users.nama', $keyword);
+            $builder->groupStart() // Mulai grup pencarian agar join tidak berantakan
+                    ->like('users.nama', $keyword)
+                    ->orLike('buku.judul', $keyword)
+                    ->groupEnd();
         }
+        
         return $builder->findAll();
     }
 }

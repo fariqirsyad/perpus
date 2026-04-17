@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\PeminjamanModel;
+use App\Models\BukuModel; // Tambahkan ini agar lebih rapi
 
 class Peminjaman extends BaseController
 {
@@ -13,20 +14,22 @@ class Peminjaman extends BaseController
         $model = new PeminjamanModel();
         $cari = $this->request->getVar('cari');
 
-        // Jika ada pencarian, panggil fungsi search di model
-        if ($cari) {
-            $data['transaksi'] = $model->searchPeminjaman($cari);
-        } else {
-            // Jika login sebagai anggota, hanya tampilkan pinjamannya sendiri
-            if (session('role') == 'anggota') {
-                $model->where('peminjaman.id_user', session('id'));
-            }
+        // Gunakan Query Builder agar join selalu presisi
+        $builder = $model->select('peminjaman.*, users.nama, buku.judul, buku.denda_per_hari')
+                         ->join('users', 'users.id = peminjaman.id_user')
+                         ->join('buku', 'buku.id_buku = peminjaman.id_buku');
 
-            $data['transaksi'] = $model->select('peminjaman.*, users.nama, buku.judul')
-                ->join('users', 'users.id = peminjaman.id_user')
-                ->join('buku', 'buku.id_buku = peminjaman.id_buku')
-                ->findAll();
+        if ($cari) {
+            // Pencarian berdasarkan nama peminjam atau judul buku
+            $builder->like('users.nama', $cari)->orLike('buku.judul', $cari);
         }
+
+        // Jika login sebagai anggota, filter data miliknya sendiri
+        if (session('role') == 'anggota') {
+            $builder->where('peminjaman.id_user', session('id'));
+        }
+
+        $data['transaksi'] = $builder->orderBy('peminjaman.id_pinjam', 'DESC')->findAll();
 
         return view('peminjaman/index', $data);
     }
@@ -36,7 +39,7 @@ class Peminjaman extends BaseController
     public function katalog()
     {
         $db = \Config\Database::connect();
-        // Hanya tampilkan buku yang stoknya di atas 0
+        // Ambil denda_per_hari juga biar bisa tampil di katalog kalau perlu
         $data['buku'] = $db->table('buku')->where('stok >', 0)->get()->getResultArray();
         return view('peminjaman/katalog', $data);
     }
@@ -47,7 +50,11 @@ class Peminjaman extends BaseController
         $id_user = session()->get('id');
         $id_buku = $this->request->getPost('id_buku');
 
-        // Validasi maksimal pinjam 3 buku yang statusnya masih 'dipinjam' atau 'diajukan'
+        if (!$id_buku) {
+            return redirect()->back()->with('error', 'Pilih buku terlebih dahulu!');
+        }
+
+        // Validasi maksimal pinjam 3 buku aktif
         $jumlah = $db->table('peminjaman')
             ->where('id_user', $id_user)
             ->whereIn('status', ['dipinjam', 'diajukan'])
@@ -57,14 +64,15 @@ class Peminjaman extends BaseController
             return redirect()->back()->with('error', 'Maaf, maksimal pinjam 3 buku!');
         }
 
-        // Simpan data peminjaman
+        // Simpan data peminjaman (Pinjam 7 hari)
         $tgl_kembali = date('Y-m-d', strtotime('+7 days'));
         $db->table('peminjaman')->insert([
-            'id_user'    => $id_user,
-            'id_buku'    => $id_buku,
-            'tgl_pinjam' => date('Y-m-d'),
+            'id_user'     => $id_user,
+            'id_buku'     => $id_buku,
+            'tgl_pinjam'  => date('Y-m-d'),
             'tgl_kembali' => $tgl_kembali,
-            'status'     => 'dipinjam'
+            'denda'       => 0, // Inisialisasi denda 0
+            'status'      => 'dipinjam'
         ]);
 
         // Kurangi stok buku
@@ -76,11 +84,12 @@ class Peminjaman extends BaseController
     public function ajukan_kembali($id)
     {
         $db = \Config\Database::connect();
+        // Update status jadi 'diajukan'
         $db->table('peminjaman')->where('id_pinjam', $id)->update([
             'status' => 'diajukan'
         ]);
 
-        return redirect()->to('/peminjaman')->with('msg', 'Permintaan pengembalian telah dikirim ke admin.');
+        return redirect()->to('/peminjaman')->with('msg', 'Permintaan pengembalian dikirim. Serahkan buku ke Admin.');
     }
 
     // --- FITUR KHUSUS ADMIN ---
@@ -88,30 +97,47 @@ class Peminjaman extends BaseController
     public function konfirmasi_kembali($id)
     {
         $db = \Config\Database::connect();
-        $pinjam = $db->table('peminjaman')->where('id_pinjam', $id)->get()->getRow();
 
-        if (!$pinjam) return redirect()->to('/peminjaman');
+        // 1. Ambil data transaksi dan nominal denda per hari dari tabel buku
+        $pinjam = $db->table('peminjaman')
+                     ->select('peminjaman.*, buku.denda_per_hari')
+                     ->join('buku', 'buku.id_buku = peminjaman.id_buku')
+                     ->where('id_pinjam', $id)
+                     ->get()
+                     ->getRow();
 
-        // Hitung Denda (misal 5000 per hari)
-        $tgl_deadline = strtotime($pinjam->tgl_kembali);
-        $tgl_sekarang = strtotime(date('Y-m-d'));
-        $denda = 0;
-
-        if ($tgl_sekarang > $tgl_deadline) {
-            $selisih = ($tgl_sekarang - $tgl_deadline) / (60 * 60 * 24);
-            $denda = $selisih * 5000;
+        if (!$pinjam) {
+            return redirect()->to('/peminjaman')->with('error', 'Data tidak ditemukan.');
         }
 
-        // Update status jadi kembali dan catat denda
+        // 2. LOGIKA HITUNG DENDA
+        $tgl_deadline = strtotime($pinjam->tgl_kembali);
+        $tgl_sekarang = strtotime(date('Y-m-d')); // Tanggal hari ini
+        $total_denda = 0;
+
+        if ($tgl_sekarang > $tgl_deadline) {
+            $selisih_detik = $tgl_sekarang - $tgl_deadline;
+            $selisih_hari  = floor($selisih_detik / (60 * 60 * 24)); // Konversi ke hari
+            
+            // Gunakan denda dari database, jika kosong default ke 5000
+            $tarif_denda = ($pinjam->denda_per_hari > 0) ? $pinjam->denda_per_hari : 5000;
+            $total_denda = $selisih_hari * $tarif_denda;
+        }
+
+        // 3. Update Status, Tanggal Dikembalikan, dan Denda
         $db->table('peminjaman')->where('id_pinjam', $id)->update([
             'tgl_dikembalikan' => date('Y-m-d'),
-            'denda' => $denda,
-            'status' => 'kembali'
+            'denda'            => $total_denda,
+            'status'           => 'kembali'
         ]);
 
-        // Tambahkan kembali stok buku
+        // 4. Kembalikan Stok Buku (+1)
         $db->query("UPDATE buku SET stok = stok + 1 WHERE id_buku = ?", [$pinjam->id_buku]);
 
-        return redirect()->to('/peminjaman')->with('msg', 'Buku berhasil dikonfirmasi kembali!');
+        $pesan = ($total_denda > 0) 
+                 ? "Buku kembali! Member telat $selisih_hari hari, denda: Rp " . number_format($total_denda, 0, ',', '.') 
+                 : "Buku kembali tepat waktu. Tidak ada denda.";
+
+        return redirect()->to('/peminjaman')->with('msg', $pesan);
     }
 }

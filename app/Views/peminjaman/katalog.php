@@ -1,6 +1,8 @@
+<?= $this->extend('layouts/main') ?> <?= $this->section('content') ?>
+
 <h2>Katalog Buku</h2>
 <p>Silahkan pilih buku yang ingin Anda pinjam.</p>
-<hr>
+
 
 <div style="display: flex; flex-wrap: wrap; gap: 20px;">
     <?php foreach($buku as $b) : ?>
@@ -33,5 +35,5 @@
         <?= session()->getFlashdata('msg') ?>
     </div>
 <?php endif; ?>
-
+<?= $this->endSection() ?>
 </div>

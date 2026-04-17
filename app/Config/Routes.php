@@ -47,3 +47,11 @@ $routes->post('peminjaman/pinjam_mandiri', 'Peminjaman::pinjam_mandiri');
 
 $routes->get('peminjaman/ajukan_kembali/(:num)', 'Peminjaman::ajukan_kembali/$1');
 $routes->get('peminjaman/konfirmasi_kembali/(:num)', 'Peminjaman::konfirmasi_kembali/$1');
+
+$routes->get('/buku', 'Buku::index');
+$routes->post('/buku/simpan', 'Buku::simpan');
+$routes->get('/buku/hapus/(:num)', 'Buku::hapus/$1');
+$routes->post('buku/update/(:num)', 'Buku::update/$1');
+
+$routes->get('/', 'Home::index');
+$routes->get('dashboard', 'Home::index'); // Tambahkan ini juga biar aman
