@@ -3,56 +3,127 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | E-Perpus</title>
 
-    <!-- Bootstrap CSS Lokal -->
     <link href="<?= base_url('assets/css/bootstrap.min.css') ?>" rel="stylesheet">
     <link href="<?= base_url('assets/bootstrap-icons-1.13.1/bootstrap-icons.css') ?>" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Inter', sans-serif;
+        }
+        .login-card {
+            border: none;
+            border-radius: 25px;
+            overflow: hidden;
+        }
+        .login-header {
+            background: #ffffff;
+            padding: 40px 20px 20px 20px;
+            text-align: center;
+        }
+        .login-header h4 {
+            font-weight: 800;
+            color: #2d3436;
+            letter-spacing: -1px;
+        }
+        .form-control {
+            border-radius: 12px;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            background-color: #fcfcfc;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 0 4px rgba(0, 128, 128, 0.1);
+            border-color: #008080;
+        }
+        .btn-login {
+            background: #2d3436;
+            color: white;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-login:hover {
+            background: #000;
+            transform: translateY(-2px);
+            color: white;
+        }
+        .brand-logo {
+            width: 60px;
+            height: 60px;
+            background: #008080;
+            color: white;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 28px;
+            box-shadow: 0 10px 20px rgba(0, 128, 128, 0.2);
+        }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
 
     <div class="container d-flex justify-content-center align-items-center vh-100">
-        <div class="card shadow" style="width: 380px;">
-            <div class="card-header bg-primary text-white text-center">
-                <h4 class="mb-0">Login</h4>
+        <div class="card login-card shadow-lg" style="width: 400px;">
+            
+            <div class="login-header">
+                <div class="brand-logo">
+                    <i class="bi bi-book-half"></i>
+                </div>
+                <h4>E-PERPUS PINTAR</h4>
+                <p class="text-muted small">Silakan masuk untuk mengelola perpustakaan</p>
             </div>
 
-            <div class="card-body">
+            <div class="card-body px-4 pb-5">
 
-                <!-- Pesan Error -->
-                <?php if (session()->getFlashdata('error')): ?>
-                    <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+                <?php if (session()->getFlashdata('error') || session()->getFlashdata('salahpw')): ?>
+                    <div class="alert alert-danger d-flex align-items-center border-0 small" style="border-radius: 12px;">
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                        <div><?= session()->getFlashdata('error') ?? session()->getFlashdata('salahpw') ?></div>
+                    </div>
                 <?php endif; ?>
 
-                <?php if (session()->getFlashdata('salahpw')): ?>
-                    <div class="alert alert-danger"><?= session()->getFlashdata('salahpw') ?></div>
-                <?php endif; ?>
-
-                <!-- Form Login -->
                 <form action="<?= base_url('/proses-login') ?>" method="post">
+                    <?= csrf_field() ?>
 
                     <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input type="text" name="username" class="form-control" placeholder="Masukkan username" required>
+                        <label class="form-label small fw-bold text-muted">USERNAME</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px;">
+                                <i class="bi bi-person text-muted"></i>
+                            </span>
+                            <input type="text" name="username" class="form-control border-start-0" placeholder="Username Anda" required style="border-radius: 0 12px 12px 0;">
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" placeholder="Masukkan password" required>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label small fw-bold text-muted">PASSWORD</label>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px;">
+                                <i class="bi bi-lock text-muted"></i>
+                            </span>
+                            <input type="password" name="password" class="form-control border-start-0" placeholder="••••••••" required style="border-radius: 0 12px 12px 0;">
+                        </div>
                     </div>
 
-                    <button class="btn btn-primary w-100">
-                        <i class="bi bi-box-arrow-in-right"></i> Sign In
+                    <button type="submit" class="btn btn-login w-100 mb-3">
+                        Masuk Ke Sistem <i class="bi bi-arrow-right ms-2"></i>
                     </button>
 
                 </form>
 
-                <!-- Tombol Tambah User -->
-                <div class="text-center mt-3">
-                    <a href="<?= base_url('users/create') ?>" class="btn btn-outline-success btn-sm">
-                        <i class="bi bi-person-plus"></i> Daftar Baru
-                    </a>
+                <div class="text-center">
+                    <span class="text-muted small">Belum punya akun?</span>
+                    <a href="<?= base_url('users/create') ?>" class="text-decoration-none small fw-bold" style="color: #008080;"> Daftar Sekarang</a>
                 </div>
 
             </div>

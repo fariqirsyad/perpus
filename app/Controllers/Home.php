@@ -5,28 +5,35 @@ namespace App\Controllers;
 class Home extends BaseController
 {
     public function index()
-    {
-        $db = \Config\Database::connect();
+{
+    $db = \Config\Database::connect();
+    
+    $data = [
+        'total_buku'    => $db->table('buku')->countAllResults(),
+        'total_pinjam'  => $db->table('peminjaman')->where('status', 'Sedang Dipinjam')->countAllResults(),
+        // INI YANG PENTING: Ambil data peminjaman yang deadline-nya hari ini atau lewat
+        'deadline_hari_ini' => $db->table('peminjaman')
+            ->join('buku', 'buku.id_buku = peminjaman.id_buku')
+            ->join('users', 'users.id = peminjaman.id_user')
+            ->where('peminjaman.status', 'Sedang Dipinjam')
+            ->where('peminjaman.tgl_kembali <=', date('Y-m-d')) 
+            ->get()->getResultArray()
+    ];
 
-        // 1. Ambil semua data yang dibutuhkan
-        $data['total_buku']     = $db->table('buku')->countAll();
+    return view('layouts/dashboard', $data); // Pastikan $data dikirim ke view
+
         
-        // Hitung yang statusnya BENAR-BENAR 'dipinjam'
-        $data['total_pinjam']   = $db->table('peminjaman')
-                                     ->where('status', 'dipinjam')
-                                     ->countAllResults();
-        
-        // Hitung yang statusnya 'diajukan' (menunggu konfirmasi)
-        $data['total_diajukan'] = $db->table('peminjaman')
-                                     ->where('status', 'diajukan')
-                                     ->countAllResults();
+        // Contoh logic di Controller
+$db = \Config\Database::connect();
+$data['deadline_hari_ini'] = $db->table('peminjaman')
+    ->join('buku', 'buku.id_buku = peminjaman.id_buku')
+    ->join('users', 'users.id = peminjaman.id_user')
+    ->where('peminjaman.status', 'Sedang Dipinjam')
+    ->where('peminjaman.batas_kembali <=', date('Y-m-d')) // Hari ini atau sudah lewat
+    ->get()->getResultArray();
 
-        // Hitung total anggota
-        $data['total_member']   = $db->table('users')
-                                     ->where('role', 'anggota')
-                                     ->countAllResults();
-
-        // 2. Kirim SEMUA data tersebut ke view dalam satu array $data
-        return view('layouts/dashboard', $data); 
     }
+
+
+    
 }
