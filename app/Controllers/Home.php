@@ -22,7 +22,7 @@ class Home extends BaseController
         ->select('peminjaman.*, buku.judul, users.username')
         ->join('buku', 'buku.id_buku = peminjaman.id_buku')
         ->join('users', 'users.id = peminjaman.id_user')
-        ->where('peminjaman.status', 'dipinjam') // Samakan jadi 'dipinjam'
+        ->where('peminjaman.status', 'dipinjam') 
         ->where('peminjaman.tgl_kembali <=', date('Y-m-d')) 
         ->get()->getResultArray();
 
