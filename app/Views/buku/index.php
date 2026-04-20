@@ -13,17 +13,39 @@
 
 <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
     <div class="card-body p-3">
-        <form action="<?= base_url('buku') ?>" method="get" class="row g-2">
-            <div class="col-md-10">
+        <form action="<?= site_url('buku') ?>" method="get" class="row g-2">
+            <div class="col-md-6"> 
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
                         <i class="bi bi-search text-muted"></i>
                     </span>
-                    <input type="text" name="cari" class="form-control border-start-0" placeholder="Cari judul, penulis, atau ISBN..." value="<?= request()->getGet('cari') ?>" style="border-radius: 0 10px 10px 0;">
+                    <input type="text" name="cari" class="form-control border-start-0" 
+                           placeholder="Cari judul, penulis..." 
+                           value="<?= htmlspecialchars(request()->getGet('cari') ?? '') ?>" 
+                           style="border-radius: 0 10px 10px 0;">
                 </div>
             </div>
+
+            <div class="col-md-2">
+                <select name="kategori" class="form-select" style="border-radius: 10px;">
+                    <?php foreach($list_kategori as $k): ?>
+                        <option value="<?= $k == 'Semua' ? '' : $k ?>" <?= request()->getGet('kategori') == $k ? 'selected' : '' ?>>
+                            <?= $k ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            
             <div class="col-md-2 d-grid">
-                <button type="submit" class="btn btn-dark" style="border-radius: 10px;">Cari</button>
+                <button type="submit" class="btn btn-dark" style="border-radius: 10px;">
+                    <i class="bi bi-search me-1"></i> Cari
+                </button>
+            </div>
+
+            <div class="col-md-2 d-grid">
+                <a href="<?= site_url('buku') ?>" class="btn btn-light border" style="border-radius: 10px; color: #666;">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Reset
+                </a>
             </div>
         </form>
     </div>
@@ -44,40 +66,68 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php $no = 1; foreach($buku as $b) : ?>
-                    <tr>
-                        <td class="ps-4 text-muted small"><?= $no++ ?></td>
-                        <td>
-                            <?php if ($b['cover']) : ?>
-                                <img src="<?= base_url('uploads/cover/' . $b['cover']) ?>" style="width: 45px; height: 60px; object-fit: cover; border-radius: 6px;">
-                            <?php else : ?>
-                                <div class="bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 60px; border-radius: 6px;">
-                                    <i class="bi bi-book text-muted"></i>
+                    <?php if (!empty($buku)) : ?>
+                        <?php $no = 1; foreach($buku as $b) : ?>
+                        <tr>
+                            <td class="ps-4 text-muted small"><?= $no++ ?></td>
+                            <td>
+                                <?php if ($b['cover']) : ?>
+                                    <img src="<?= base_url('uploads/cover/' . $b['cover']) ?>" style="width: 45px; height: 60px; object-fit: cover; border-radius: 6px;">
+                                <?php else : ?>
+                                    <div class="bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 60px; border-radius: 6px;">
+                                        <i class="bi bi-book text-muted"></i>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                            <td><code class="text-primary fw-bold">#B-<?= $b['id_buku'] ?></code></td>
+                            <td>
+                                <div class="fw-bold text-dark" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?= $b['judul'] ?>">
+                                    <?= $b['judul'] ?>
                                 </div>
-                            <?php endif; ?>
-                        </td>
-                        <td><code class="text-primary fw-bold">#B-<?= $b['id_buku'] ?></code></td>
-                        <td><div class="fw-bold text-dark" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?= $b['judul'] ?></div></td>
-                        <td class="text-center">
-                            <span class="badge <?= ($b['stok'] < 1) ? 'bg-danger' : 'bg-success' ?>" style="border-radius: 5px;">
-                                <?= $b['stok'] ?> Eks
-                            </span>
-                        </td>
-                        <td class="text-center pe-4">
-                            <div class="d-flex justify-content-center gap-1">
-                                <button type="button" class="btn btn-sm btn-info text-white" onclick='showDetail(<?= json_encode($b) ?>)' title="Lihat Detail" style="border-radius: 8px;">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick='showEdit(<?= json_encode($b) ?>)' style="border-radius: 8px;">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-                                <a href="<?= base_url('buku/hapus/'.$b['id_buku']) ?>" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;" onclick="return confirm('Hapus buku ini?')">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
+                                <div class="small text-muted"><?= $b['kategori'] ?></div>
+                            </td>
+                            <td class="text-center">
+    <?php 
+        // Logic menentukan warna berdasarkan jumlah stok
+        if ($b['stok'] <= 0) {
+            $warna_stok = 'bg-danger'; // Merah jika habis
+        } elseif ($b['stok'] <= 3) {
+            $warna_stok = 'bg-warning text-dark'; // Kuning jika stok menipis (3 kebawah)
+        } else {
+            $warna_stok = 'bg-success'; // Hijau jika stok aman
+        }
+    ?>
+    <span class="badge <?= $warna_stok ?>" style="border-radius: 8px; padding: 6px 12px;">
+        <?= $b['stok'] ?> Eks
+    </span>
+</td>
+                            <td class="text-center pe-4">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <button type="button" class="btn btn-sm btn-info text-white" onclick='showDetail(<?= json_encode($b) ?>)' title="Lihat Detail" style="border-radius: 8px;">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick='showEdit(<?= json_encode($b) ?>)' style="border-radius: 8px;">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <a href="<?= base_url('buku/hapus/'.$b['id_buku']) ?>" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;" onclick="return confirm('Hapus buku ini?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="bi bi-search text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                                </div>
+                                <h6 class="fw-bold text-muted">Buku "<?= htmlspecialchars(request()->getGet('cari') ?? '') ?>" tidak ditemukan</h6>
+                                <p class="text-muted small">Coba cari dengan kata kunci lain atau kata kunci yang lebih umum.</p>
+                                <a href="<?= site_url('buku') ?>" class="btn btn-sm btn-secondary mt-2" style="border-radius: 8px;">Lihat Semua</a>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

@@ -99,7 +99,7 @@
                                     <tr>
                                         <td>
                                             <div class="fw-bold text-dark"><?= $d['username'] ?? 'User' ?></div>
-                                            <small class="text-muted">ID: #<?= $d['id_peminjaman'] ?></small>
+                                            <small class="text-muted">ID: #<?= $d['id_pinjam'] ?></small>
                                         </td>
                                         <td><?= $d['judul'] ?></td>
                                         <td>

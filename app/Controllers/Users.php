@@ -80,34 +80,34 @@ class Users extends BaseController
     }
 
     // Menampilkan daftar user (dengan filter & pagination)
-    public function index()
-    {
-        // Ambil parameter GET (search & filter)
-        $keyword = $this->request->getGet('keyword');
-        $role = $this->request->getGet('role');
+  public function index()
+{
+    // Ambil parameter GET (hanya keyword & role)
+    $keyword = $this->request->getGet('keyword');
+    $role    = $this->request->getGet('role');
 
-        // Builder awal dari model
-        $builder = $this->users;
+    $builder = $this->users;
 
-        // Jika ada keyword → filter berdasarkan nama
-        if ($keyword) {
-            $builder = $builder->like('nama', $keyword);
-        }
-
-        // Jika ada filter role
-        if ($role) {
-            $builder = $builder->where('role', $role);
-        }
-
-        // Ambil data dengan pagination (10 data per halaman)
-        $data['users'] = $builder->paginate(10);
-
-        // Pager untuk navigasi halaman
-        $data['pager'] = $this->users->pager;
-
-        // Kirim data ke view
-        return view('users/index', $data);
+    // Filter Keyword (Nama, Username, Email)
+    if ($keyword) {
+        $builder->groupStart()
+                ->like('nama', $keyword)
+                ->orLike('username', $keyword)
+                ->orLike('email', $keyword)
+                ->groupEnd();
     }
+
+    // Filter Role (Admin, Petugas, Anggota)
+    if ($role) {
+        $builder->where('role', $role);
+    }
+
+    // Ambil data dengan pagination
+    $data['users'] = $builder->orderBy('id', 'DESC')->paginate(10, 'default');
+    $data['pager'] = $this->users->pager;
+
+    return view('users/index', $data);
+}
 
     // Menampilkan form edit user
     public function edit($id)

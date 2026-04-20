@@ -12,16 +12,40 @@ class Buku extends BaseController
         $this->bukuModel = new BukuModel();
     }
 
-    public function index()
+   public function index()
 {
+    // 1. Ambil data dari URL (cari dan kategori)
+    $keyword  = $this->request->getGet('cari');
+    $kategori = $this->request->getGet('kategori');
+
+    // 2. Inisialisasi Builder
+    $builder = $this->bukuModel->builder();
+
+    // 3. Logic Pencarian Teks
+    if ($keyword) {
+        $builder->groupStart()
+                ->like('judul', $keyword)
+                ->orLike('penulis', $keyword)
+                ->orLike('isbn', $keyword)
+                ->groupEnd();
+    }
+
+    // 4. Logic Filter Kategori (Ini yang bikin REAKSI!)
+    // Kita cek jika kategori ada dan bukan "Semua"
+    if ($kategori && $kategori != 'Semua') {
+        $builder->where('kategori', $kategori);
+    }
+
     $data = [
         'title'         => 'Daftar Buku',
-        // Masukkan list kategori ke sini biar bisa dibaca di View
         'list_kategori' => [
             'Semua', 'Umum', 'Agama', 'Sains & Teknologi', 
             'Sosial & Sejarah', 'Bahasa & Sastra', 'Seni & Rekreasi'
         ],
-        'buku'          => $this->bukuModel->findAll(), // Sesuaikan dengan cara kamu ambil data
+        // 5. Eksekusi Query (Gunakan get()->getResultArray() untuk builder)
+        'buku'          => $builder->orderBy('id_buku', 'DESC')->get()->getResultArray(), 
+        'keyword'       => $keyword,
+        'kategori_now'  => $kategori // Kirim balik biar dropdown tetap terpilih
     ];
 
     return view('buku/index', $data);

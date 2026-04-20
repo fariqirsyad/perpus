@@ -87,15 +87,16 @@
                 <div class="d-flex justify-content-center align-items-center mb-3">
                     <?php 
                         if ($stok <= 0) {
-                            $badge_class = "bg-danger text-white"; 
-                            $status_text = "Stok Habis";
-                        } elseif ($stok <= 3) {
-                            $badge_class = "bg-warning text-dark"; 
-                            $status_text = "Sisa: $stok unit";
-                        } else {
-                            $badge_class = "bg-light text-muted border"; 
-                            $status_text = "Stok: $stok unit";
-                        }
+    $badge_class = "bg-danger text-white"; 
+    $status_text = "Stok Habis";
+} elseif ($stok <= 3) {
+    $badge_class = "bg-warning text-dark"; 
+    $status_text = "Sisa: $stok unit";
+} else {
+    // Diubah jadi Hijau (bg-success) biar lebih menarik di Katalog
+    $badge_class = "bg-success text-white"; 
+    $status_text = "Stok: $stok unit";
+}
                     ?>
                     <span class="badge <?= $badge_class ?> p-2 px-3" style="border-radius: 10px; font-size: 12px;">
                         <i class="bi bi-box-seam me-2"></i> <?= $status_text ?>

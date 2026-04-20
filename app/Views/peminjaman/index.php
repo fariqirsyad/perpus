@@ -10,18 +10,39 @@
 
 <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
     <div class="card-body p-3">
-        <form action="" method="get" class="row g-2">
-            <div class="col-md-10">
+        <form action="<?= site_url('peminjaman') ?>" method="get" class="row g-2">
+            <div class="col-md-6"> 
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
                         <i class="bi bi-search text-muted"></i>
                     </span>
-                    <input type="text" name="cari" class="form-control border-start-0" placeholder="Cari nama peminjam atau judul buku..." value="<?= isset($_GET['cari']) ? $_GET['cari'] : '' ?>" style="border-radius: 0 10px 10px 0;">
+                    <input type="text" name="cari" class="form-control border-start-0" 
+                           placeholder="Cari nama atau judul..." 
+                           value="<?= htmlspecialchars(request()->getGet('cari') ?? '') ?>" 
+                           style="border-radius: 0 10px 10px 0;">
                 </div>
             </div>
-            <div class="col-md-2 d-grid">
-                <button type="submit" class="btn btn-dark" style="border-radius: 10px;">Cari</button>
+
+            <div class="col-md-2">
+                <select name="status" class="form-select" style="border-radius: 10px;">
+                    <option value="">Semua Status</option>
+                    <option value="Dipinjam" <?= request()->getGet('status') == 'Dipinjam' ? 'selected' : '' ?>>Dipinjam</option>
+                    <option value="Kembali" <?= request()->getGet('status') == 'Kembali' ? 'selected' : '' ?>>Kembali</option>
+                    <option value="Terlambat" <?= request()->getGet('status') == 'Terlambat' ? 'selected' : '' ?>>Terlambat</option>
+                </select>
             </div>
+            
+            <div class="col-md-2 d-grid">
+    <button type="submit" class="btn btn-dark" style="border-radius: 10px;">
+        <i class="bi bi-search me-2"></i> Cari
+    </button>
+</div>
+
+<div class="col-md-2 d-grid">
+    <a href="<?= base_url('peminjaman') ?>" class="btn btn-light border d-flex align-items-center justify-content-center" style="border-radius: 10px; color: #666;">
+        <i class="bi bi-arrow-clockwise me-2"></i> Reset
+    </a>
+</div>
         </form>
     </div>
 </div>
@@ -32,10 +53,11 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
-                        <th class="ps-4 py-3 text-muted" style="font-size: 13px;">PEMINJAM & BUKU</th>
-                        <th class="py-3 text-muted text-center" style="font-size: 13px;">TGL PINJAM</th>
+                        <th class="ps-4 py-3 text-muted" style="font-size: 13px; width: 50px;">NO</th>
+                        <th class="py-3 text-muted" style="font-size: 13px;">PEMINJAM & BUKU</th>
+                        <th class="py-3 text-muted text-center" style="font-size: 13px;">TANGGAL PINJAM</th>
                         <th class="py-3 text-muted text-center" style="font-size: 13px;">BATAS KEMBALI</th>
-                        <th class="py-3 text-muted text-center" style="font-size: 13px;">TGL KEMBALI</th>
+                        <th class="py-3 text-muted text-center" style="font-size: 13px;">TANGGAL KEMBALI</th>
                         <th class="py-3 text-muted" style="font-size: 13px;">DENDA</th>
                         <th class="py-3 text-muted text-center" style="font-size: 13px;">STATUS</th>
                         <th class="py-3 text-center text-muted" style="font-size: 13px;">AKSI</th>
@@ -44,16 +66,21 @@
                 <tbody>
                     <?php if(empty($transaksi)): ?>
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="8" class="text-center py-5">
                                 <i class="bi bi-inboxes text-muted d-block mb-3" style="font-size: 3rem;"></i>
                                 <p class="text-muted">Tidak ada data peminjaman yang ditemukan.</p>
                             </td>
                         </tr>
                     <?php endif; ?>
 
-                    <?php foreach ($transaksi as $t) : ?>
+                    <?php 
+                    $no = 1; // Inisialisasi nomor
+                    foreach ($transaksi as $t) : 
+                    ?>
                         <tr>
-                            <td class="ps-4">
+                            <td class="ps-4 text-muted small"><?= $no++ ?></td>
+
+                            <td>
                                 <div class="fw-bold text-dark"><?= $t['nama'] ?></div>
                                 <div class="text-muted small"><i class="bi bi-book me-1"></i><?= $t['judul'] ?></div>
                             </td>

@@ -7,32 +7,48 @@ use App\Models\BukuModel; // Tambahkan ini agar lebih rapi
 
 class Peminjaman extends BaseController
 {
-    // --- FITUR UMUM ---
+   // --- FITUR UMUM ---
 
-    public function index()
-    {
-        $model = new PeminjamanModel();
-        $cari = $this->request->getVar('cari');
+public function index()
+{
+    $model = new PeminjamanModel();
+    
+    // Ambil data dari URL (Pencarian & Filter Status)
+    $cari   = $this->request->getGet('cari');
+    $status = $this->request->getGet('status');
 
-        // Gunakan Query Builder agar join selalu presisi
-        $builder = $model->select('peminjaman.*, users.nama, buku.judul, buku.denda_per_hari')
-                         ->join('users', 'users.id = peminjaman.id_user')
-                         ->join('buku', 'buku.id_buku = peminjaman.id_buku');
+    // Gunakan Query Builder agar join selalu presisi
+    $builder = $model->select('peminjaman.*, users.nama, buku.judul, buku.denda_per_hari')
+                     ->join('users', 'users.id = peminjaman.id_user')
+                     ->join('buku', 'buku.id_buku = peminjaman.id_buku');
 
-        if ($cari) {
-            // Pencarian berdasarkan nama peminjam atau judul buku
-            $builder->like('users.nama', $cari)->orLike('buku.judul', $cari);
-        }
-
-        // Jika login sebagai anggota, filter data miliknya sendiri
-        if (session('role') == 'anggota') {
-            $builder->where('peminjaman.id_user', session('id'));
-        }
-
-        $data['transaksi'] = $builder->orderBy('peminjaman.id_pinjam', 'DESC')->findAll();
-
-        return view('peminjaman/index', $data);
+    // 1. Logic Pencarian (Nama atau Judul)
+    if ($cari) {
+        $builder->groupStart()
+                ->like('users.nama', $cari)
+                ->orLike('buku.judul', $cari)
+                ->groupEnd();
     }
+
+    // 2. Logic Filter Status (TAMBAHAN BARU)
+    if ($status) {
+        // Pastikan nama kolom 'status_peminjaman' sesuai dengan yang ada di database kamu
+        $builder->where('peminjaman.status', $status);
+    }
+
+    // 3. Filter jika login sebagai anggota (hanya lihat data sendiri)
+    if (session('role') == 'anggota') {
+        $builder->where('peminjaman.id_user', session('id'));
+    }
+
+    $data['transaksi'] = $builder->orderBy('peminjaman.id_pinjam', 'DESC')->findAll();
+    
+    // Kirim juga variabel status ke view biar dropdown-nya tetap terpilih (stay selected)
+    $data['cari'] = $cari;
+    $data['status_saat_ini'] = $status;
+
+    return view('peminjaman/index', $data);
+}
 
     // --- FITUR KHUSUS ANGGOTA ---
 

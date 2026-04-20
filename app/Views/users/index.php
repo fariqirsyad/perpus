@@ -15,31 +15,41 @@
 
 <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
     <div class="card-body p-3">
-        <form method="get" action="" class="row g-2 align-items-center">
-            <div class="col-md-5">
+        <form method="get" action="<?= base_url('users') ?>" class="row g-2 align-items-center">
+            
+            <div class="col-md-6">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
                         <i class="bi bi-search text-muted"></i>
                     </span>
-                    <input type="text" name="keyword" class="form-control border-start-0" placeholder="Cari nama, email, atau username..." value="<?= $_GET['keyword'] ?? '' ?>" style="border-radius: 0 10px 10px 0;">
+                    <input type="text" name="keyword" class="form-control border-start-0" 
+                           placeholder="Cari nama, email, atau username..." 
+                           value="<?= htmlspecialchars(request()->getGet('keyword') ?? '') ?>" 
+                           style="border-radius: 0 10px 10px 0;">
                 </div>
             </div>
-            <div class="col-md-3">
+
+            <div class="col-md-2">
                 <select name="role" class="form-select" style="border-radius: 10px;">
-                    <option value="">-- Semua Role --</option>
-                    <option value="admin" <?= (($_GET['role'] ?? '') == 'admin') ? 'selected' : '' ?>>Admin</option>
-                    <option value="petugas" <?= (($_GET['role'] ?? '') == 'petugas') ? 'selected' : '' ?>>Petugas</option>
-                    <option value="anggota" <?= (($_GET['role'] ?? '') == 'anggota') ? 'selected' : '' ?>>Anggota</option>
+                    <option value="">Role</option>
+                    <option value="admin" <?= (request()->getGet('role') == 'admin') ? 'selected' : '' ?>>Admin</option>
+                    <option value="petugas" <?= (request()->getGet('role') == 'petugas') ? 'selected' : '' ?>>Petugas</option>
+                    <option value="anggota" <?= (request()->getGet('role') == 'anggota') ? 'selected' : '' ?>>Anggota</option>
                 </select>
             </div>
-            <div class="col-md-4 d-flex gap-2">
-                <button type="submit" class="btn btn-dark px-4" style="border-radius: 10px;">
-                    <i class="bi bi-funnel me-1"></i> Cari
+
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-dark" style="border-radius: 10px;">
+                    <i class="bi bi-search me-1"></i> Cari
                 </button>
-                <a href="<?= base_url('users') ?>" class="btn btn-outline-secondary px-3" style="border-radius: 10px;">
-                    Reset
+            </div>
+
+            <div class="col-md-2 d-grid">
+                <a href="<?= base_url('users') ?>" class="btn btn-light border d-flex align-items-center justify-content-center" style="border-radius: 10px; color: #666;">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Reset
                 </a>
             </div>
+
         </form>
     </div>
 </div>
