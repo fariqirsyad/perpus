@@ -90,7 +90,7 @@
                                 <tr class="text-muted" style="font-size: 12px;">
                                     <th>Peminjam</th>
                                     <th>Buku</th>
-                                    <th>Batas</th>
+                                    <th>Batas Pengembalian</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -98,12 +98,18 @@
                                 <?php foreach ($deadline_hari_ini as $d) : ?>
                                     <tr>
                                         <td>
-                                            <div class="fw-bold text-dark"><?= $d['nama'] ?></div>
-                                            <small class="text-muted">#<?= $d['id_peminjaman'] ?></small>
+                                            <div class="fw-bold text-dark"><?= $d['username'] ?? 'User' ?></div>
+                                            <small class="text-muted">ID: #<?= $d['id_peminjaman'] ?></small>
                                         </td>
                                         <td><?= $d['judul'] ?></td>
-                                        <td><span class="text-danger fw-bold"><?= $d['batas_kembali'] ?></span></td>
-                                        <td><a href="<?= base_url('peminjaman') ?>" class="btn btn-sm btn-light border">Detail</a></td>
+                                        <td>
+                                            <span class="text-danger fw-bold"><?= $d['tgl_kembali'] ?></span>
+                                        </td>
+                                        <td>
+                                            <a href="<?= base_url('peminjaman') ?>" class="btn btn-sm btn-light border" style="border-radius: 8px;">
+                                                <i class="bi bi-eye me-1"></i> Detail
+                                            </a>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -111,7 +117,9 @@
                     </div>
                 <?php else : ?>
                     <div class="text-center py-5">
-                        <i class="bi bi-check2-circle text-success" style="font-size: 3rem;"></i>
+                        <div class="bg-light d-inline-block rounded-circle p-4 mb-3">
+                            <i class="bi bi-check2-circle text-success" style="font-size: 3rem;"></i>
+                        </div>
                         <p class="text-muted mt-2">Semua aman! Tidak ada buku yang jatuh tempo hari ini.</p>
                     </div>
                 <?php endif; ?>
@@ -119,61 +127,223 @@
         </div>
     </div>
 
-   
+    <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 20px; background: white;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Aksi Cepat</h5>
                 
-                <hr class="my-4" style="opacity: 0.1;">
-                
-                <div class="p-3 rounded-4 bg-light">
-                    <small class="text-muted d-block mb-2 fw-bold">Bantuan Cepat</small>
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-question-circle fs-5 me-2 text-info"></i>
-                        <small class="text-dark">Ada kendala? Hubungi tim IT support kami.</small>
-                    </div>
-                </div>
-            </div>
-        </div>
+                <div class="d-grid gap-3">
+                    <?php if (session('role') == 'admin' || session('role') == 'petugas') : ?>
+                        <button class="btn btn-light border-0 py-3 text-start px-3" style="border-radius: 15px;" data-bs-toggle="modal" data-bs-target="#modalTambahBuku">
+                            <i class="bi bi-plus-circle-fill text-primary me-2"></i> Tambah Koleksi Buku
+                        </button>
+
+                        <a href="<?= base_url('peminjaman') ?>" class="btn btn-light border-0 py-3 text-start px-3" style="border-radius: 15px;">
+                            <i class="bi bi-journal-plus text-success me-2"></i> Kelola Peminjaman
+                        </a>
+
+                        
+
+                    <?php else : ?>
+                       <a href="<?= base_url('peminjaman/katalog') ?>" class="btn btn-white shadow-sm border-0 px-4 py-3" style="border-radius: 15px;">
+    <div class="text-center">
+        <i class="bi bi-search fs-4 text-info d-block mb-1"></i>
+        <span class="small fw-bold">Cari Buku</span>
     </div>
+</a>
+
+                        <a href="<?= base_url('peminjaman') ?>" class="btn btn-light border-0 py-3 text-start px-3" style="border-radius: 15px;">
+                            <i class="bi bi-clock-history text-warning me-2"></i> Riwayat Pinjaman
+                        </a>
+
+                        <button class="btn btn-light border-0 py-3 text-start px-3 w-100" style="border-radius: 15px;" data-bs-toggle="modal" data-bs-target="#modalKartuDigital">
+    <i class="bi bi-person-vcard-fill text-primary me-2"></i> Lihat Kartu Digital
+</button>
+                    <?php endif; ?>
+                </div>
+
+                
+                <div class="mt-4 p-3 bantuan-box" style="border-radius: 15px; background: #f8fafc;">
+    <small class="text-uppercase fw-bold text-muted" style="font-size: 10px; letter-spacing: 1px;">Bantuan</small>
+    <a href="https://wa.me/628123456789?text=Halo%20Admin%20Perpus%20Pintar,%20saya%20butuh%20bantuan%20terkait..." 
+       target="_blank" 
+       class="d-flex align-items-center mt-2 text-decoration-none">
+        <div class="bg-info-subtle p-2 rounded-circle me-3">
+            <i class="bi bi-whatsapp text-info fs-5"></i>
+        </div>
+        <div>
+            <p class="mb-0 fw-semibold text-dark" style="font-size: 13px;">Hubungi IT Support</p>
+            <small class="text-muted" style="font-size: 11px;">Tersedia via WhatsApp</small>
+        </div>
+    </a>
 </div>
 
-<div class="modal fade" id="modalTambahBuku" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; border: none;">
+<style>
+    .bantuan-box {
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+    .bantuan-box:hover {
+        background: #ffffff !important;
+        border-color: #06b6d4;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+</style>
+
+
+<div class="modal fade" id="modalTambahBuku" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
             <div class="modal-header border-0 p-4 pb-0">
-                <h5 class="fw-bold"><i class="bi bi-plus-circle text-teal me-2"></i>Tambah Koleksi Baru</h5>
+                <h5 class="fw-bold text-dark"><i class="bi bi-plus-circle-fill text-info me-2"></i>Tambah Buku Baru</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            
             <form action="<?= base_url('buku/simpan') ?>" method="post" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Judul Buku</label>
-                        <input type="text" name="judul" class="form-control" placeholder="Contoh: Laskar Pelangi" required style="border-radius: 10px;">
+                        <label class="form-label small fw-bold text-muted">JUDUL BUKU</label>
+                        <input type="text" name="judul" class="form-control bg-light border-0" placeholder="Masukkan judul buku" required style="border-radius: 8px; padding: 12px;">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted">Penulis</label>
-                        <input type="text" name="penulis" class="form-control" placeholder="Contoh: Andrea Hirata" required style="border-radius: 10px;">
-                    </div>
+
                     <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label small fw-bold text-muted">Stok</label>
-                            <input type="number" name="stok" class="form-control" value="1" min="1" required style="border-radius: 10px;">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">PENULIS</label>
+                            <input type="text" name="penulis" class="form-control bg-light border-0" placeholder="Nama penulis" required style="border-radius: 8px; padding: 12px;">
                         </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label small fw-bold text-muted">Denda (Rp)</label>
-                            <input type="number" name="denda_per_hari" class="form-control" value="5000" style="border-radius: 10px;">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">ISBN</label>
+                            <input type="text" name="isbn" class="form-control bg-light border-0" placeholder="978-xxx-xxx" style="border-radius: 8px; padding: 12px;">
                         </div>
                     </div>
-                    <div class="mb-0">
-                        <label class="form-label small fw-bold text-muted">Cover Buku</label>
-                        <input type="file" name="cover" class="form-control" style="border-radius: 10px;">
-                        <small class="text-muted" style="font-size: 11px;">*Format: jpg/png (Opsional)</small>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">KATEGORI</label>
+                            <input type="text" name="kategori" class="form-control bg-light border-0" placeholder="Contoh: Umum" style="border-radius: 8px; padding: 12px;">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">PENERBIT</label>
+                            <input type="text" name="penerbit" class="form-control bg-light border-0" placeholder="Nama penerbit" style="border-radius: 8px; padding: 12px;">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">TAHUN TERBIT</label>
+                            <input type="number" name="tahun" class="form-control bg-light border-0" placeholder="2024" style="border-radius: 8px; padding: 12px;">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">STOK</label>
+                            <input type="number" name="stok" class="form-control bg-light border-0" value="1" min="1" required style="border-radius: 8px; padding: 12px;">
+                        </div>
+                    </div>
+
+                    <div class="row align-items-end">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">DENDA / HARI (Rp)</label>
+                            <input type="number" name="denda_per_hari" class="form-control bg-light border-0" value="5000" style="border-radius: 8px; padding: 12px;">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">COVER BUKU</label>
+                            <input type="file" name="cover" class="form-control bg-light border-0" style="border-radius: 8px; padding: 10px;">
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal" style="border-radius: 10px;">Batal</button>
-                    <button type="submit" class="btn btn-teal px-4" style="border-radius: 10px;">Simpan Buku</button>
+
+                <div class="modal-footer border-0 p-4 pt-0 text-end">
+                    <button type="button" class="btn btn-light px-4 fw-bold me-2" data-bs-dismiss="modal" style="border-radius: 10px;">Batal</button>
+                    <button type="submit" class="btn px-4 fw-bold text-white shadow-sm" style="border-radius: 10px; background-color: #06b6d4; border: none;">Simpan Data</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Paksa layar tetap kaku 100% */
+    html, body {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow-x: hidden !important;
+    }
+    /* Matikan padding-right otomatis yang bikin geser */
+    body.modal-open, .modal {
+        padding-right: 0 !important;
+        overflow-y: auto !important;
+    }
+    /* Matikan animasi fade kalau masih kedap-kedip */
+    .modal.fade .modal-dialog {
+        transition: none !important;
+        transform: none !important;
+    }
+</style>
+
+<script>
+    // Jurus pamungkas: Hapus padding-right secara paksa lewat JS
+    window.addEventListener('DOMContentLoaded', () => {
+        const modalTambah = document.getElementById('modalTambahBuku');
+        modalTambah.addEventListener('show.bs.modal', () => {
+            setTimeout(() => {
+                document.body.style.paddingRight = '0px';
+            }, 10);
+        });
+    });
+</script>
+
+<div class="modal fade" id="modalKartuDigital" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0" style="border-radius: 25px; background: linear-gradient(135deg, #0891b2 0%, #0ea5e9 100%); overflow: hidden;">
+            <div class="modal-body p-0">
+                <div class="p-4 text-white position-relative" style="min-height: 250px;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-book-half fs-4"></i>
+                            <span class="fw-bold tracking-wider" style="letter-spacing: 1px;">E-PERPUS PINTAR</span>
+                        </div>
+                        <i class="bi bi-wifi fs-4 opacity-50"></i>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-4 mt-4">
+                        <div class="bg-white p-1 rounded-circle shadow-lg">
+                            <img src="https://ui-avatars.com/api/?name=<?= session('nama') ?>&background=0891b2&color=fff&size=128" 
+                                 class="rounded-circle" width="90" height="90" alt="Profile">
+                        </div>
+                        
+                        <div class="text-start">
+                            <h3 class="fw-bold mb-0 text-capitalize"><?= session('nama') ?></h3>
+                            <p class="mb-2 opacity-75">Anggota Perpustakaan</p>
+                            <div class="bg-white bg-opacity-25 px-3 py-1 rounded-pill d-inline-block">
+                                <small class="fw-bold text-uppercase" style="font-size: 11px; letter-spacing: 1px;">
+                                    ID: #<?= str_pad(session('id_user'), 5, '0', STR_PAD_LEFT) ?>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <i class="bi bi-shield-check position-absolute" style="bottom: -20px; right: -10px; font-size: 150px; opacity: 0.1;"></i>
+                </div>
+
+                <div class="bg-white p-4 text-center">
+                    <div class="row align-items-center">
+                        <div class="col-7 text-start">
+                            <p class="text-muted small mb-1">Status Keanggotaan</p>
+                            <h6 class="fw-bold text-success mb-0"><i class="bi bi-patch-check-fill me-1"></i> AKTIF SEUMUR HIDUP</h6>
+                        </div>
+                        <div class="col-5">
+                            <div class="p-2 border rounded-3 d-inline-block">
+                                <i class="bi bi-qr-code text-dark" style="font-size: 45px;"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-light w-100 mt-3 border-0 py-2 text-muted" data-bs-dismiss="modal" style="border-radius: 12px; font-size: 13px;">
+                        Tutup Kartu
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -72,21 +72,24 @@
                             <tr>
                                 <td class="ps-4 text-muted"><?= $no++ ?></td>
                                 <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="me-3">
+                                    <a href="<?= base_url('users/detail/' . $u['id']) ?>" class="text-decoration-none d-flex align-items-center group-hover">
+                                        <div class="me-3 position-relative photo-wrapper">
                                             <?php if ($u['foto']): ?>
-                                                <img src="<?= base_url('uploads/users/' . $u['foto']) ?>" class="rounded-circle shadow-sm" width="45" height="45" style="object-fit: cover; border: 2px solid #fff;">
+                                                <img src="<?= base_url('uploads/users/' . $u['foto']) ?>" class="rounded-circle shadow-sm profile-img" width="45" height="45">
                                             <?php else: ?>
-                                                <div class="rounded-circle bg-teal text-white d-flex align-items-center justify-content-center shadow-sm" width="45" height="45" style="width: 45px; height: 45px; font-weight: bold;">
+                                                <div class="rounded-circle bg-teal text-white d-flex align-items-center justify-content-center shadow-sm profile-img" style="width: 45px; height: 45px; font-weight: bold;">
                                                     <?= strtoupper(substr($u['nama'], 0, 1)) ?>
                                                 </div>
                                             <?php endif; ?>
+                                            <div class="photo-overlay rounded-circle d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-eye text-white" style="font-size: 12px;"></i>
+                                            </div>
                                         </div>
                                         <div>
-                                            <div class="fw-bold text-dark"><?= $u['nama'] ?></div>
+                                            <div class="fw-bold text-dark name-link"><?= $u['nama'] ?></div>
                                             <div class="text-muted small"><?= $u['email'] ?></div>
                                         </div>
-                                    </div>
+                                    </a>
                                 </td>
                                 <td><code class="text-primary" style="font-size: 13px;">@<?= $u['username'] ?></code></td>
                                 <td>
@@ -102,28 +105,33 @@
                                 </td>
 
                                 <?php if (session()->get('role') == 'admin') : ?>
-                                    <td class="text-center pe-4">
-                                        <div class="dropdown">
-                                            <button class="btn btn-light btn-sm rounded-pill" type="button" data-bs-toggle="dropdown">
-                                                <i class="bi bi-three-dots-vertical"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm" style="border-radius: 12px;">
-                                                <li><a class="dropdown-item" href="<?= base_url('users/detail/' . $u['id']) ?>"><i class="bi bi-eye me-2"></i>Detail</a></li>
-                                                <li><a class="dropdown-item" href="<?= base_url('users/edit/' . $u['id']) ?>"><i class="bi bi-pencil me-2"></i>Edit User</a></li>
-                                                <li><a class="dropdown-item text-success" href="<?= base_url('users/wa/' . $u['id']) ?>" target="_blank"><i class="bi bi-whatsapp me-2"></i>Kirim WA</a></li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li><a class="dropdown-item text-danger" href="<?= base_url('users/delete/' . $u['id']) ?>" onclick="return confirm('Hapus user ini?')"><i class="bi bi-trash me-2"></i>Hapus</a></li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                <?php endif; ?>
+    <td class="text-center pe-4">
+        <div class="d-flex justify-content-center gap-2">
+            <a href="<?= base_url('users/wa/' . $u['id']) ?>" 
+               target="_blank" 
+               class="btn btn-sm btn-light text-success border-0 shadow-sm" 
+               title="Kirim WhatsApp"
+               style="border-radius: 10px; padding: 8px 10px;">
+                <i class="bi bi-whatsapp"></i>
+            </a>
+
+            <a href="<?= base_url('users/delete/' . $u['id']) ?>" 
+               class="btn btn-sm btn-light text-danger border-0 shadow-sm" 
+               title="Hapus User"
+               onclick="return confirm('Hapus user ini?')"
+               style="border-radius: 10px; padding: 8px 10px;">
+                <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+<?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
                             <td colspan="5" class="text-center py-5">
                                 <i class="bi bi-people text-muted d-block mb-3" style="font-size: 3rem;"></i>
-                                <p class="text-muted">Belut ada data user yang terdaftar.</p>
+                                <p class="text-muted">Belum ada data user yang terdaftar.</p>
                             </td>
                         </tr>
                     <?php endif; ?>
@@ -133,11 +141,42 @@
     </div>
 </div>
 
+<style>
+    /* Style tambahan biar transisinya halus */
+    .profile-img {
+        object-fit: cover; 
+        border: 2px solid #fff;
+        transition: all 0.2s ease;
+    }
+    
+    .photo-wrapper {
+        position: relative;
+    }
+
+    .photo-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.3);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .photo-wrapper:hover .photo-overlay {
+        opacity: 1;
+    }
+
+    .name-link:hover {
+        color: #06b6d4 !important;
+    }
+</style>
+
 <div class="mt-4 d-flex justify-content-center">
     <div class="pagination-wrapper">
         <?= $pager->links() ?>
     </div>
 </div>
-
 
 <?= $this->endSection() ?>

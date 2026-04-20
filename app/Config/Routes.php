@@ -55,3 +55,4 @@ $routes->post('buku/update/(:num)', 'Buku::update/$1');
 
 $routes->get('/', 'Home::index');
 $routes->get('dashboard', 'Home::index'); // Tambahkan ini juga biar aman
+

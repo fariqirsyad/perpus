@@ -12,95 +12,90 @@ class Buku extends BaseController
         $this->bukuModel = new BukuModel();
     }
 
-   public function index() {
-    $cari = $this->request->getVar('cari');
-    
-    if ($cari) {
-        // Jika ada pencarian, cari di kolom judul atau penulis
-        $data['buku'] = $this->bukuModel->like('judul', $cari)
-                                        ->orLike('penulis', $cari)
-                                        ->findAll();
-    } else {
-        $data['buku'] = $this->bukuModel->findAll();
-    }
-    
+    public function index()
+{
+    $data = [
+        'title'         => 'Daftar Buku',
+        // Masukkan list kategori ke sini biar bisa dibaca di View
+        'list_kategori' => [
+            'Semua', 'Umum', 'Agama', 'Sains & Teknologi', 
+            'Sosial & Sejarah', 'Bahasa & Sastra', 'Seni & Rekreasi'
+        ],
+        'buku'          => $this->bukuModel->findAll(), // Sesuaikan dengan cara kamu ambil data
+    ];
+
     return view('buku/index', $data);
 }
 
     public function simpan()
-{
-    $bukuModel = new \App\Models\BukuModel();
+    {
+        // FIX: Tambahkan kategori, isbn, dan tahun_terbit agar tidak strip (-) lagi!
+        $data = [
+            'judul'          => $this->request->getPost('judul'),
+            'penulis'        => $this->request->getPost('penulis'),
+            'isbn'           => $this->request->getPost('isbn'),
+            'kategori'       => $this->request->getPost('kategori'), // Sesuai kolom DB
+            'penerbit'       => $this->request->getPost('penerbit'), // Sesuai kolom DB
+            'tahun_terbit'   => $this->request->getPost('tahun_terbit'), // Sesuai kolom DB
+            'stok'           => $this->request->getPost('stok'),
+            'deskripsi'      => $this->request->getPost('deskripsi'),
+            'denda_per_hari' => $this->request->getPost('denda_per_hari'),
+        ];
 
-    // Mengambil data teks biasa
-    $data = [
-        'judul'          => $this->request->getPost('judul'),
-        'penulis'        => $this->request->getPost('penulis'),
-        'stok'           => $this->request->getPost('stok'),
-        'denda_per_hari' => $this->request->getPost('denda_per_hari'),
-    ];
+        $fileCover = $this->request->getFile('cover');
 
-    
-    // Ganti baris 43 ke bawah jadi begini:
-$fileCover = $this->request->getFile('cover');
-
-// Cek apakah variabel $fileCover itu ada isinya (tidak null)
-if ($fileCover && $fileCover->isValid() && !$fileCover->hasMoved()) {
-    $namaGambar = $fileCover->getRandomName();
-    $fileCover->move('uploads/cover', $namaGambar);
-    $data['cover'] = $namaGambar;
-} else {
-    // Kalau nggak ada gambar, kasih gambar default atau biarkan kosong sesuai DB kamu
-    $data['cover'] = 'default.jpg'; 
-}
-
-    $bukuModel->save($data);
-
-    return redirect()->to('/buku')->with('msg', 'Buku baru berhasil ditambahkan!');
-}
-
-    public function update($id)
-{
-    $bukuModel = new \App\Models\BukuModel();
-
-    // Data teks
-    $data = [
-        'judul'          => $this->request->getPost('judul'),
-        'penulis'        => $this->request->getPost('penulis'),
-        'stok'           => $this->request->getPost('stok'),
-        'denda_per_hari' => $this->request->getPost('denda_per_hari'),
-    ];
-
-    $fileCover = $this->request->getFile('cover');
-
-    if ($fileCover->isValid() && !$fileCover->hasMoved()) {
-        // HAPUS COVER LAMA (Biar gak menuhin storage)
-        $buku = $bukuModel->find($id);
-        if ($buku['cover'] && file_exists('uploads/cover/' . $buku['cover'])) {
-            unlink('uploads/cover/' . $buku['cover']); // Hapus file fisiknya
+        if ($fileCover && $fileCover->isValid() && !$fileCover->hasMoved()) {
+            $namaGambar = $fileCover->getRandomName();
+            $fileCover->move('uploads/cover', $namaGambar);
+            $data['cover'] = $namaGambar;
         }
 
-        // Upload Cover BARU
-        $namaGambar = $fileCover->getRandomName();
-        $fileCover->move('uploads/cover', $namaGambar);
-        $data['cover'] = $namaGambar;
+        $this->bukuModel->save($data);
+
+        return redirect()->to('/buku')->with('msg', 'Buku baru berhasil ditambahkan!');
     }
-    // Jika admin tidak upload cover baru, data 'cover' lama tidak akan berubah.
 
-    $bukuModel->update($id, $data);
+    public function update($id)
+    {
+        // FIX: Tambahkan kategori, isbn, dan tahun_terbit di fungsi update juga!
+        $data = [
+            'judul'          => $this->request->getPost('judul'),
+            'penulis'        => $this->request->getPost('penulis'),
+            'isbn'           => $this->request->getPost('isbn'),
+            'kategori'       => $this->request->getPost('kategori'),
+            'penerbit'       => $this->request->getPost('penerbit'),
+            'tahun_terbit'   => $this->request->getPost('tahun_terbit'),
+            'stok'           => $this->request->getPost('stok'),
+            'deskripsi'      => $this->request->getPost('deskripsi'),
+            'denda_per_hari' => $this->request->getPost('denda_per_hari'),
+        ];
 
-    return redirect()->to('/buku')->with('msg', 'Data buku berhasil diperbarui!');
-}
+        $fileCover = $this->request->getFile('cover');
+
+        if ($fileCover && $fileCover->isValid() && !$fileCover->hasMoved()) {
+            // Hapus cover lama
+            $buku = $this->bukuModel->find($id);
+            if ($buku['cover'] && file_exists('uploads/cover/' . $buku['cover'])) {
+                unlink('uploads/cover/' . $buku['cover']);
+            }
+
+            $namaGambar = $fileCover->getRandomName();
+            $fileCover->move('uploads/cover', $namaGambar);
+            $data['cover'] = $namaGambar;
+        }
+
+        $this->bukuModel->update($id, $data);
+
+        return redirect()->to('/buku')->with('msg', 'Data buku berhasil diperbarui!');
+    }
 
     public function hapus($id)
-{
-    $db = \Config\Database::connect();
-    
-    // 1. Hapus dulu semua riwayat pinjam yang berhubungan dengan buku ini
-    $db->table('peminjaman')->where('id_buku', $id)->delete();
-    
-    // 2. Baru hapus bukunya
-    $this->bukuModel->delete($id);
+    {
+        $db = \Config\Database::connect();
+        $db->table('peminjaman')->where('id_buku', $id)->delete();
+        
+        $this->bukuModel->delete($id);
 
-    return redirect()->to('/buku')->with('msg', 'Buku dan riwayatnya berhasil dihapus!');
-}
+        return redirect()->to('/buku')->with('msg', 'Buku dan riwayatnya berhasil dihapus!');
+    }
 }

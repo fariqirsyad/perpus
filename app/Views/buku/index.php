@@ -6,8 +6,8 @@
         <h2 class="fw-bold">Kelola Koleksi Buku</h2>
         <p class="text-muted">Manajemen data buku, stok, dan pengaturan denda perpustakaan.</p>
     </div>
-    <button class="btn btn-teal px-4 py-2" style="border-radius: 12px;" onclick="showTambah()">
-        <i class="bi bi-plus-lg me-2"></i>Tambah Buku Baru
+    <button class="btn btn-tambah-custom px-4 py-2 shadow-sm d-flex align-items-center" onclick="showTambah()" style="background-color: #06b6d4; color: white; border: none; border-radius: 10px; font-weight: 600;">
+        <i class="bi bi-plus-lg me-2"></i> Tambah Buku Baru
     </button>
 </div>
 
@@ -19,17 +19,12 @@
                     <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px;">
                         <i class="bi bi-search text-muted"></i>
                     </span>
-                    <input type="text" name="cari" class="form-control border-start-0" placeholder="Cari judul buku atau nama penulis..." value="<?= request()->getGet('cari') ?>" style="border-radius: 0 10px 10px 0;">
+                    <input type="text" name="cari" class="form-control border-start-0" placeholder="Cari judul, penulis, atau ISBN..." value="<?= request()->getGet('cari') ?>" style="border-radius: 0 10px 10px 0;">
                 </div>
             </div>
             <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-dark" style="border-radius: 10px;">Cari</button>
             </div>
-            <?php if(request()->getGet('cari')): ?>
-                <div class="col-12 text-start">
-                    <small>Menampilkan hasil pencarian: <b>"<?= request()->getGet('cari') ?>"</b> <a href="<?= base_url('buku') ?>" class="text-danger ms-2 text-decoration-none">Reset</a></small>
-                </div>
-            <?php endif; ?>
         </form>
     </div>
 </div>
@@ -37,53 +32,46 @@
 <div class="card border-0 shadow-sm" style="border-radius: 20px;">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
                 <thead class="bg-light">
                     <tr>
-                        <th class="ps-4 py-3 text-muted" style="font-size: 13px;">COVER</th>
-                        <th class="py-3 text-muted" style="font-size: 13px;">DETAIL BUKU</th>
-                        <th class="py-3 text-muted" style="font-size: 13px;">PENULIS</th>
-                        <th class="py-3 text-muted text-center" style="font-size: 13px;">STOK</th>
-                        <th class="py-3 text-muted" style="font-size: 13px;">DENDA/HARI</th>
-                        <th class="py-3 text-center text-muted" style="font-size: 13px;">AKSI</th>
+                        <th class="ps-4 py-3 text-muted">NO</th>
+                        <th class="py-3 text-muted">COVER</th>
+                        <th class="py-3 text-muted">ID BUKU</th>
+                        <th class="py-3 text-muted">JUDUL</th>
+                        <th class="py-3 text-muted text-center">STOK</th>
+                        <th class="py-3 text-muted text-center">AKSI</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if(empty($buku)): ?>
-                        <tr>
-                            <td colspan="6" class="text-center py-5">
-                                <i class="bi bi-book text-muted d-block mb-3" style="font-size: 3rem;"></i>
-                                <p class="text-muted">Data buku tidak ditemukan.</p>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                    
-                    <?php foreach($buku as $b) : ?>
+                    <?php $no = 1; foreach($buku as $b) : ?>
                     <tr>
-                        <td class="ps-4">
+                        <td class="ps-4 text-muted small"><?= $no++ ?></td>
+                        <td>
                             <?php if ($b['cover']) : ?>
-                                <img src="<?= base_url('uploads/cover/' . $b['cover']) ?>" class="shadow-sm" style="width: 50px; height: 70px; object-fit: cover; border-radius: 8px;">
+                                <img src="<?= base_url('uploads/cover/' . $b['cover']) ?>" style="width: 45px; height: 60px; object-fit: cover; border-radius: 6px;">
                             <?php else : ?>
-                                <div class="bg-light d-flex align-items-center justify-content-center shadow-sm" style="width: 50px; height: 70px; border-radius: 8px;">
-                                    <i class="bi bi-image text-muted"></i>
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 60px; border-radius: 6px;">
+                                    <i class="bi bi-book text-muted"></i>
                                 </div>
                             <?php endif; ?>
                         </td>
-                        <td>
-                            <div class="fw-bold text-dark"><?= $b['judul'] ?></div>
-                            <small class="text-muted">ID: #B-<?= $b['id_buku'] ?></small>
-                        </td>
-                        <td><span class="badge bg-light text-dark fw-normal p-2 px-3" style="border-radius: 8px;"><?= $b['penulis'] ?></span></td>
+                        <td><code class="text-primary fw-bold">#B-<?= $b['id_buku'] ?></code></td>
+                        <td><div class="fw-bold text-dark" style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?= $b['judul'] ?></div></td>
                         <td class="text-center">
-                            <span class="fw-bold <?= ($b['stok'] < 3) ? 'text-danger' : 'text-dark' ?>"><?= $b['stok'] ?></span>
+                            <span class="badge <?= ($b['stok'] < 1) ? 'bg-danger' : 'bg-success' ?>" style="border-radius: 5px;">
+                                <?= $b['stok'] ?> Eks
+                            </span>
                         </td>
-                        <td><span class="text-success fw-bold">Rp <?= number_format($b['denda_per_hari'], 0, ',', '.') ?></span></td>
                         <td class="text-center pe-4">
-                            <div class="btn-group">
-                                <button onclick="showEdit('<?= $b['id_buku'] ?>', '<?= addslashes($b['judul']) ?>', '<?= addslashes($b['penulis']) ?>', '<?= $b['stok'] ?>', '<?= $b['denda_per_hari'] ?>')" class="btn btn-sm btn-outline-primary" style="border-radius: 8px 0 0 8px;">
+                            <div class="d-flex justify-content-center gap-1">
+                                <button type="button" class="btn btn-sm btn-info text-white" onclick='showDetail(<?= json_encode($b) ?>)' title="Lihat Detail" style="border-radius: 8px;">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick='showEdit(<?= json_encode($b) ?>)' style="border-radius: 8px;">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
-                                <a href="<?= base_url('buku/hapus/'.$b['id_buku']) ?>" onclick="return confirm('Hapus buku ini?')" class="btn btn-sm btn-outline-danger" style="border-radius: 0 8px 8px 0;">
+                                <a href="<?= base_url('buku/hapus/'.$b['id_buku']) ?>" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;" onclick="return confirm('Hapus buku ini?')">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </div>
@@ -96,93 +84,224 @@
     </div>
 </div>
 
-<div id="modalTambah" class="modal-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index: 1050;">
-    <div style="position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); background:white; padding:30px; border-radius: 20px; width: 450px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+<div id="modalTambah" class="modal-custom-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div class="modal-custom-card" style="background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto;">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold mb-0">Tambah Buku</h4>
+            <h4 class="fw-bold mb-0">Tambah Buku Baru</h4>
             <button class="btn-close" onclick="hideTambah()"></button>
         </div>
         <form action="<?= base_url('buku/simpan') ?>" method="post" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label class="form-label small fw-bold text-muted text-uppercase">Judul Buku</label>
-                <input type="text" name="judul" class="form-control" placeholder="Masukan judul buku" required style="border-radius: 10px;">
-            </div>
-            <div class="mb-3">
-                <label class="form-label small fw-bold text-muted text-uppercase">Penulis</label>
-                <input type="text" name="penulis" class="form-control" placeholder="Nama penulis" required style="border-radius: 10px;">
-            </div>
-            <div class="row mb-3">
-                <div class="col-6">
-                    <label class="form-label small fw-bold text-muted text-uppercase">Stok</label>
-                    <input type="number" name="stok" class="form-control" value="1" required style="border-radius: 10px;">
+            <?= csrf_field() ?>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="small fw-bold">JUDUL BUKU</label>
+                    <input type="text" name="judul" class="form-control" required style="border-radius: 8px;" placeholder="Contoh: Laskar Pelangi">
                 </div>
-                <div class="col-6">
-                    <label class="form-label small fw-bold text-muted text-uppercase">Denda/Hari</label>
-                    <input type="number" name="denda_per_hari" class="form-control" value="5000" required style="border-radius: 10px;">
+
+                <div class="col-md-6">
+                    <label class="small fw-bold">PENULIS</label>
+                    <input type="text" name="penulis" class="form-control" required style="border-radius: 8px;" placeholder="Nama penulis">
+                </div>
+                <div class="col-md-6">
+                    <label class="small fw-bold">ISBN</label>
+                    <input type="text" name="isbn" class="form-control" style="border-radius: 8px;" placeholder="978-xxx-xxx">
+                </div>
+
+                <div class="col-md-6">
+    <label class="small fw-bold">KATEGORI</label>
+    <select name="kategori" id="edit_kategori" class="form-select" style="border-radius: 8px;">
+        <?php foreach($list_kategori as $k): ?>
+            <?php if($k != 'Semua'): ?>
+                <option value="<?= $k ?>"><?= $k ?></option>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </select>
+</div>
+                <div class="col-md-6">
+                    <label class="small fw-bold">PENERBIT</label>
+                    <input type="text" name="penerbit" class="form-control" style="border-radius: 8px;" placeholder="Nama penerbit">
+                </div>
+
+                <div class="col-12">
+                    <label class="small fw-bold">DESKRIPSI BUKU</label>
+                    <textarea name="deskripsi" class="form-control" rows="3" style="border-radius: 8px;" placeholder="Masukkan ringkasan atau sinopsis buku..."></textarea>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="small fw-bold">TAHUN TERBIT</label>
+                    <input type="number" name="tahun_terbit" class="form-control" style="border-radius: 8px;" placeholder="2024">
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold">STOK</label>
+                    <input type="number" name="stok" class="form-control" value="1" style="border-radius: 8px;" placeholder="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold">DENDA/HARI</label>
+                    <input type="number" name="denda_per_hari" class="form-control" value="5000" style="border-radius: 8px;" placeholder="5000">
+                </div>
+
+                <div class="col-12">
+                    <label class="small fw-bold">COVER BUKU</label>
+                    <input type="file" name="cover" class="form-control" style="border-radius: 8px;">
                 </div>
             </div>
-            <div class="mb-4">
-                <label class="form-label small fw-bold text-muted text-uppercase">Upload Cover</label>
-                <input type="file" name="cover" class="form-control" accept="image/*" style="border-radius: 10px;">
-            </div>
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button type="button" class="btn btn-light px-4" onclick="hideTambah()" style="border-radius: 10px;">Batal</button>
-                <button type="submit" class="btn btn-teal px-4" style="border-radius: 10px;">Simpan</button>
+            <div class="mt-4 text-end">
+                <button type="button" class="btn btn-light me-2" onclick="hideTambah()">Batal</button>
+                <button type="submit" class="btn btn-primary" style="background-color: #06b6d4; border: none; border-radius: 8px; font-weight: bold;">Simpan Data</button>
             </div>
         </form>
     </div>
 </div>
 
-<div id="modalEdit" class="modal-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index: 1050;">
-    <div style="position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); background:white; padding:30px; border-radius: 20px; width: 450px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+<div id="modalEdit" class="modal-custom-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div class="modal-custom-card" style="background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="fw-bold mb-0">Edit Data Buku</h4>
             <button class="btn-close" onclick="hideEdit()"></button>
         </div>
         <form id="formEdit" action="" method="post" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label class="form-label small fw-bold text-muted text-uppercase">Judul Buku</label>
-                <input type="text" id="edit_judul" name="judul" class="form-control" required style="border-radius: 10px; border: 1px solid #0d6efd;">
-            </div>
-            <div class="mb-3">
-                <label class="form-label small fw-bold text-muted text-uppercase">Penulis</label>
-                <input type="text" id="edit_penulis" name="penulis" class="form-control" required style="border-radius: 10px; border: 1px solid #0d6efd;">
-            </div>
-            <div class="row mb-3">
-                <div class="col-6">
-                    <label class="form-label small fw-bold text-muted text-uppercase">Stok Tersedia</label>
-                    <input type="number" id="edit_stok" name="stok" class="form-control" required style="border-radius: 10px;">
+            <?= csrf_field() ?>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="small fw-bold">JUDUL BUKU</label>
+                    <input type="text" id="edit_judul" name="judul" class="form-control" required style="border-radius: 8px;" placeholder="Masukkan judul buku">
                 </div>
-                <div class="col-6">
-                    <label class="form-label small fw-bold text-muted text-uppercase">Denda (Rp)</label>
-                    <input type="number" id="edit_denda" name="denda_per_hari" class="form-control" required style="border-radius: 10px;">
+
+                <div class="col-md-6">
+                    <label class="small fw-bold">PENULIS</label>
+                    <input type="text" id="edit_penulis" name="penulis" class="form-control" required style="border-radius: 8px;" placeholder="Nama penulis">
+                </div>
+                <div class="col-md-6">
+                    <label class="small fw-bold">ISBN</label>
+                    <input type="text" id="edit_isbn" name="isbn" class="form-control" style="border-radius: 8px;" placeholder="978-xxx-xxx">
+                </div>
+
+                <div class="col-md-6">
+    <label class="small fw-bold">KATEGORI</label>
+    <select name="kategori" id="edit_kategori" class="form-select" style="border-radius: 8px;">
+        <?php foreach($list_kategori as $k): ?>
+            <?php if($k != 'Semua'): ?>
+                <option value="<?= $k ?>"><?= $k ?></option>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </select>
+</div>
+                <div class="col-md-6">
+                    <label class="small fw-bold">PENERBIT</label>
+                    <input type="text" id="edit_penerbit" name="penerbit" class="form-control" style="border-radius: 8px;" placeholder="Nama penerbit">
+                </div>
+
+                <div class="col-12">
+                    <label class="small fw-bold">DESKRIPSI BUKU</label>
+                    <textarea id="edit_deskripsi" name="deskripsi" class="form-control" rows="3" style="border-radius: 8px;" placeholder="Masukkan ringkasan buku..."></textarea>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="small fw-bold">TAHUN TERBIT</label>
+                    <input type="number" id="edit_tahun" name="tahun_terbit" class="form-control" style="border-radius: 8px;" placeholder="2024">
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold">STOK</label>
+                    <input type="number" id="edit_stok" name="stok" class="form-control" style="border-radius: 8px;" placeholder="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold">DENDA/HARI</label>
+                    <input type="number" id="edit_denda" name="denda_per_hari" class="form-control" style="border-radius: 8px;" placeholder="5000">
+                </div>
+
+                <div class="col-12">
+                    <label class="small fw-bold">COVER BUKU (Kosongkan jika tidak diubah)</label>
+                    <input type="file" name="cover" class="form-control" style="border-radius: 8px;">
                 </div>
             </div>
-            <div class="mb-4">
-                <label class="form-label small fw-bold text-muted text-uppercase">Ganti Cover (Opsional)</label>
-                <input type="file" name="cover" class="form-control" accept="image/*" style="border-radius: 10px;">
-            </div>
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button type="button" class="btn btn-light px-4" onclick="hideEdit()" style="border-radius: 10px;">Batal</button>
-                <button type="submit" class="btn btn-primary px-4" style="border-radius: 10px;">Update Data</button>
+            <div class="mt-4 text-end">
+                <button type="button" class="btn btn-light me-2" onclick="hideEdit()">Batal</button>
+                <button type="submit" class="btn btn-primary" style="background-color: #06b6d4; border: none; border-radius: 8px; font-weight: bold;">Update Data</button>
             </div>
         </form>
     </div>
 </div>
 
-<script>
-    function showTambah() { document.getElementById('modalTambah').style.display = 'block'; }
-    function hideTambah() { document.getElementById('modalTambah').style.display = 'none'; }
+<div id="modalDetail" class="modal-custom-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="modal-custom-card shadow-lg" style="background: white; padding: 30px; border-radius: 20px; width: 95%; max-width: 650px; position: relative;">
+        <button class="btn-close position-absolute" style="top: 25px; right: 25px;" onclick="hideDetail()"></button>
+        
+        <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-info-circle me-2 text-primary"></i>Informasi Lengkap Buku</h4>
+        
+        <div class="row g-4 align-items-start">
+            <div class="col-md-5 text-center">
+                <div class="bg-light rounded-3 shadow-sm border p-2" style="width: 100%; height: 320px;">
+                    <img id="det_cover" src="" class="img-fluid rounded-2" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            </div>
+            
+            <div class="col-md-7">
+                <div class="table-responsive">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr class="border-bottom"><td class="py-2 text-muted" width="100">ID BUKU</td><td class="py-2 fw-bold text-primary">: <span id="det_id"></span></td></tr>
+                        <tr class="border-bottom"><td class="py-2 text-muted">JUDUL</td><td class="py-2 fw-bold text-dark">: <span id="det_judul"></span></td></tr>
+                        <tr class="border-bottom"><td class="py-2 text-muted">ISBN</td><td class="py-2">: <span id="det_isbn"></span></td></tr>
+                        <tr class="border-bottom"><td class="py-2 text-muted">PENULIS</td><td class="py-2">: <span id="det_penulis"></span></td></tr>
+                        <tr class="border-bottom"><td class="py-2 text-muted">PENERBIT</td><td class="py-2">: <span id="det_penerbit"></span></td></tr>
+                        <tr class="border-bottom"><td class="py-2 text-muted">KATEGORI</td><td class="py-2 text-uppercase small"><span id="det_kategori" class="badge bg-light text-dark border"></span></td></tr>
+                        <tr class="border-bottom"><td class="py-2 text-muted">TAHUN</td><td class="py-2">: <span id="det_tahun"></span></td></tr>
+                        <tr><td class="py-2 text-muted">DENDA</td><td class="py-2 fw-bold text-danger">: <span id="det_denda"></span> <small class="text-muted fw-normal">/ hari</small></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 pt-3 border-top text-end">
+            <button class="btn btn-dark px-4" onclick="hideDetail()" style="border-radius: 10px;">Tutup</button>
+        </div>
+    </div>
+</div>
 
-    function showEdit(id, judul, penulis, stok, denda) {
-        document.getElementById('modalEdit').style.display = 'block';
-        document.getElementById('formEdit').action = "<?= base_url('buku/update') ?>/" + id;
-        document.getElementById('edit_judul').value = judul;
-        document.getElementById('edit_penulis').value = penulis;
-        document.getElementById('edit_stok').value = stok;
-        document.getElementById('edit_denda').value = denda;
+<script>
+    function showTambah() { document.getElementById('modalTambah').style.display = 'flex'; }
+    function hideTambah() { document.getElementById('modalTambah').style.display = 'none'; }
+    
+
+    function showDetail(data) {
+        document.getElementById('modalDetail').style.display = 'flex';
+        document.getElementById('det_id').innerText = '#B-' + data.id_buku;
+        document.getElementById('det_judul').innerText = data.judul;
+        document.getElementById('det_isbn').innerText = data.isbn || '-';
+        document.getElementById('det_penulis').innerText = data.penulis;
+        document.getElementById('det_penerbit').innerText = data.penerbit || '-';
+        document.getElementById('det_kategori').innerText = data.kategori || '-';
+        document.getElementById('det_tahun').innerText = data.tahun_terbit || '-';
+        document.getElementById('det_denda').innerText = 'Rp ' + parseInt(data.denda_per_hari).toLocaleString();
+        
+        const coverPath = "<?= base_url('uploads/cover/') ?>/" + (data.cover || 'default.jpg');
+        document.getElementById('det_cover').src = coverPath;
     }
-    function hideEdit() { document.getElementById('modalEdit').style.display = 'none'; }
+    function hideDetail() { document.getElementById('modalDetail').style.display = 'none'; }
+
+    function showEdit(data) {
+    document.getElementById('modalEdit').style.display = 'flex';
+    document.getElementById('formEdit').action = "<?= base_url('buku/update') ?>/" + data.id_buku;
+    document.getElementById('edit_judul').value = data.judul;
+    document.getElementById('edit_penulis').value = data.penulis;
+    document.getElementById('edit_isbn').value = data.isbn || '';
+    document.getElementById('edit_kategori').value = data.kategori || '';
+    document.getElementById('edit_penerbit').value = data.penerbit || '';
+    document.getElementById('edit_tahun').value = data.tahun_terbit || '';
+    document.getElementById('edit_stok').value = data.stok;
+    document.getElementById('edit_denda').value = data.denda_per_hari;
+    
+    // TAMBAHKAN BARIS INI
+    document.getElementById('edit_deskripsi').value = data.deskripsi || '';
+    
+    // Optional: Kunci scroll body biar ga goyang pas edit dibuka
+    document.body.style.overflow = 'hidden';
+}
+
+function hideEdit() { 
+    document.getElementById('modalEdit').style.display = 'none'; 
+    // Balikin scroll body pas ditutup
+    document.body.style.overflow = 'auto';
+}
 </script>
 
 <?= $this->endSection() ?>

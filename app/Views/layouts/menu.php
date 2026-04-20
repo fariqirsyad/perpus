@@ -1,5 +1,6 @@
-<div class="d-flex flex-column h-100">
-    <ul class="nav flex-column flex-grow-1">
+<div class="d-flex flex-column h-100 shadow-sm" style="width: 280px; min-width: 280px; background: white; border-right: 1px solid #e2e8f0;">
+    
+    <ul class="nav flex-column flex-grow-1 overflow-y-auto">
         
         <li class="px-4 mb-2 mt-4">
             <small class="text-uppercase" style="font-size: 10px; color: #94a3b8; letter-spacing: 1.5px; font-weight: 700;">Navigasi Utama</small>
@@ -56,23 +57,24 @@
         <div class="d-flex align-items-center mb-3">
             <?php if (session('foto')) : ?>
                 <img src="<?= base_url('uploads/users/' . session('foto')) ?>" 
-                     class="rounded-circle" 
-                     style="width: 42px; height: 42px; object-fit: cover; border: 2px solid var(--accent-teal);" />
+                     class="rounded-circle shadow-sm" 
+                     style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #06b6d4;" />
             <?php else : ?>
-                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold" 
-                     style="width: 42px; height: 42px; background: linear-gradient(45deg, #06b6d4, #0891b2); color: white; font-size: 16px;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" 
+                     style="width: 40px; height: 40px; background: linear-gradient(45deg, #06b6d4, #0891b2); color: white; font-size: 14px;">
                     <?= strtoupper(substr(session('nama'), 0, 1)) ?>
                 </div>
             <?php endif; ?>
-            <div class="ms-3">
-                <p class="mb-0 fw-semibold" style="font-size: 13px; color: var(--text-dark); line-height: 1.2;"><?= session('nama') ?></p>
-                <small class="text-capitalize" style="font-size: 11px; color: var(--text-muted);"><?= session('role') ?></small>
+            
+            <div class="ms-3 overflow-hidden">
+                <p class="mb-0 fw-semibold text-truncate" style="font-size: 13px; color: #1e293b;"><?= session('nama') ?></p>
+                <small class="text-capitalize d-block text-muted" style="font-size: 11px;"><?= session('role') ?></small>
             </div>
         </div>
         
         <a href="<?= base_url('/logout') ?>" 
-           class="btn btn-outline-danger btn-sm w-100" 
-           style="border-radius: 8px;"
+           class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2" 
+           style="border-radius: 8px; font-weight: 500;"
            onclick="return confirm('Yakin ingin keluar?')">
             <i class="bi bi-box-arrow-right"></i> Keluar Aplikasi
         </a>
@@ -80,29 +82,47 @@
 </div>
 
 <style>
+    :root {
+        --accent-teal: #06b6d4;
+    }
+
     .nav-link-teal {
-        color: #64748b !important; /* Text Muted */
+        color: #64748b !important;
         font-weight: 500;
-        padding: 12px 24px !important;
-        border-radius: 8px;
+        padding: 12px 20px !important;
+        border-radius: 10px;
         margin: 4px 15px;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
         gap: 12px;
         text-decoration: none;
-        font-size: 13px;
+        font-size: 13.5px;
+    }
+
+    .nav-link-teal i {
+        font-size: 1.1rem;
     }
 
     .nav-link-teal:hover {
         color: var(--accent-teal) !important;
-        background: rgba(6, 182, 212, 0.05); /* Latar teal transparan */
+        background: rgba(6, 182, 212, 0.08);
+        transform: translateX(4px);
     }
 
     .nav-link-teal.active {
-        color: var(--accent-teal) !important;
-        background: rgba(6, 182, 212, 0.08) !important;
+        color: white !important;
+        background: linear-gradient(45deg, #06b6d4, #0891b2) !important;
         font-weight: 600;
-        border-left: 4px solid var(--accent-teal); /* Garis teal di kiri menu aktif */
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+    }
+
+    /* Menghilangkan scrollbar tapi tetap bisa scroll */
+    .overflow-y-auto::-webkit-scrollbar {
+        width: 4px;
+    }
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
     }
 </style>

@@ -37,12 +37,22 @@ class Peminjaman extends BaseController
     // --- FITUR KHUSUS ANGGOTA ---
 
     public function katalog()
-    {
-        $db = \Config\Database::connect();
-        // Ambil denda_per_hari juga biar bisa tampil di katalog kalau perlu
-        $data['buku'] = $db->table('buku')->where('stok >', 0)->get()->getResultArray();
-        return view('peminjaman/katalog', $data);
+{
+    $db = \Config\Database::connect();
+    $kategori_dipilih = $this->request->getVar('filter_kategori'); // Ambil pilihan user
+    
+    $builder = $db->table('buku');
+
+    // Jika user memilih kategori tertentu (dan bukan 'Semua')
+    if ($kategori_dipilih && $kategori_dipilih != 'Semua') {
+        $builder->where('kategori', $kategori_dipilih);
     }
+
+    $data['buku'] = $builder->get()->getResultArray();
+    $data['kategori_aktif'] = $kategori_dipilih ?? 'Semua'; // Untuk tanda tombol mana yang lagi aktif
+
+    return view('peminjaman/katalog', $data);
+}
 
     public function pinjam_mandiri()
     {

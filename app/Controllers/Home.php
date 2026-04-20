@@ -4,35 +4,39 @@ namespace App\Controllers;
 
 class Home extends BaseController
 {
-    public function index()
+ public function index()
 {
     $db = \Config\Database::connect();
     
+    // 1. Total Koleksi (Jumlah baris buku)
+    $total_koleksi = $db->table('buku')->countAllResults();
+
+    // 2. Sedang Dipinjam (SESUAIKAN DENGAN ENUM DATABASE)
+    // Di database kamu tulisannya 'dipinjam', maka di sini harus sama
+    $total_pinjam = $db->table('peminjaman')
+                       ->where('status', 'dipinjam') 
+                       ->countAllResults();
+
+    // 3. Data Deadline (Jatuh Tempo)
+    $deadline_hari_ini = $db->table('peminjaman')
+        ->select('peminjaman.*, buku.judul, users.username')
+        ->join('buku', 'buku.id_buku = peminjaman.id_buku')
+        ->join('users', 'users.id = peminjaman.id_user')
+        ->where('peminjaman.status', 'dipinjam') // Samakan jadi 'dipinjam'
+        ->where('peminjaman.tgl_kembali <=', date('Y-m-d')) 
+        ->get()->getResultArray();
+
     $data = [
-        'total_buku'    => $db->table('buku')->countAllResults(),
-        'total_pinjam'  => $db->table('peminjaman')->where('status', 'Sedang Dipinjam')->countAllResults(),
-        // INI YANG PENTING: Ambil data peminjaman yang deadline-nya hari ini atau lewat
-        'deadline_hari_ini' => $db->table('peminjaman')
-            ->join('buku', 'buku.id_buku = peminjaman.id_buku')
-            ->join('users', 'users.id = peminjaman.id_user')
-            ->where('peminjaman.status', 'Sedang Dipinjam')
-            ->where('peminjaman.tgl_kembali <=', date('Y-m-d')) 
-            ->get()->getResultArray()
+        'total_buku'        => $total_koleksi,
+        'total_pinjam'      => $total_pinjam,
+        'deadline_hari_ini' => $deadline_hari_ini
     ];
 
-    return view('layouts/dashboard', $data); // Pastikan $data dikirim ke view
-
+    return view('layouts/dashboard', $data); 
+}
         
-        // Contoh logic di Controller
-$db = \Config\Database::connect();
-$data['deadline_hari_ini'] = $db->table('peminjaman')
-    ->join('buku', 'buku.id_buku = peminjaman.id_buku')
-    ->join('users', 'users.id = peminjaman.id_user')
-    ->where('peminjaman.status', 'Sedang Dipinjam')
-    ->where('peminjaman.batas_kembali <=', date('Y-m-d')) // Hari ini atau sudah lewat
-    ->get()->getResultArray();
-
-    }
+       
+    
 
 
     
