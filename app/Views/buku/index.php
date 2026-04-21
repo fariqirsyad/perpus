@@ -102,18 +102,18 @@
     </span>
 </td>
                             <td class="text-center pe-4">
-                                <div class="d-flex justify-content-center gap-1">
-                                    <button type="button" class="btn btn-sm btn-info text-white" onclick='showDetail(<?= json_encode($b) ?>)' title="Lihat Detail" style="border-radius: 8px;">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick='showEdit(<?= json_encode($b) ?>)' style="border-radius: 8px;">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </button>
-                                    <a href="<?= base_url('buku/hapus/'.$b['id_buku']) ?>" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;" onclick="return confirm('Hapus buku ini?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </div>
-                            </td>
+    <div class="d-flex justify-content-center gap-1">
+        <button type="button" class="btn btn-sm btn-info text-white" onclick='showDetail(<?= json_encode($b) ?>)' title="Lihat Detail" style="border-radius: 8px;">
+            <i class="bi bi-eye"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick='showEdit(<?= json_encode($b) ?>)' style="border-radius: 8px;">
+            <i class="bi bi-pencil-square"></i>
+        </button>
+        <a href="<?= base_url('buku/hapus/'.$b['id_buku']) ?>" class="btn btn-sm btn-outline-danger btn-hapus" style="border-radius: 8px;">
+            <i class="bi bi-trash"></i>
+        </a>
+    </div>
+</td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else : ?>
@@ -352,6 +352,33 @@ function hideEdit() {
     // Balikin scroll body pas ditutup
     document.body.style.overflow = 'auto';
 }
+</script>
+
+<script>
+document.querySelectorAll('.btn-hapus').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault(); // Nahan link biar gak langsung hapus
+        const url = this.getAttribute('href');
+
+        Swal.fire({
+            title: 'Hapus Buku?',
+            text: "Data yang dihapus nggak bisa dikembalikan lagi loh!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33', // Merah untuk hapus
+            cancelButtonColor: '#2d3436', // Hitam/Abu tua untuk batal
+            confirmButtonText: 'Ya, Hapus Saja!',
+            cancelButtonText: 'Batal',
+            customClass: {
+                popup: 'rounded-4'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        })
+    });
+});
 </script>
 
 <?= $this->endSection() ?>

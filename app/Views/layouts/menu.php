@@ -51,6 +51,8 @@
                 <i class="bi bi-gear"></i> <span>Setting Profil</span>
             </a>
         </li>
+
+
     </ul>
 
     <div class="mt-auto p-4" style="border-top: 1px solid #e2e8f0; background: #fafbfc;">
@@ -72,14 +74,24 @@
             </div>
         </div>
         
-        <a href="<?= base_url('/logout') ?>" 
-           class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2" 
-           style="border-radius: 8px; font-weight: 500;"
-           onclick="return confirm('Yakin ingin keluar?')">
-            <i class="bi bi-box-arrow-right"></i> Keluar Aplikasi
+<div class="px-3"> <?php if (session()->get('role') == 'admin') : ?>
+        <a href="<?= base_url('/backup') ?>" class="btn d-flex align-items-center justify-content-center gap-2 w-100 shadow-none border-0 mb-2" 
+           style="background: #e8f5e9; color: #2e7d32; border-radius: 12px; height: 45px; font-size: 13px; font-weight: 600; transition: all 0.3s;">
+            <i class="bi bi-shield-check"></i> Backup System
         </a>
+    <?php endif; ?>
+
+    <a href="<?= base_url('/logout') ?>" 
+       id="btn-logout"
+       class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2 shadow-none" 
+       style="border-radius: 12px; height: 45px; font-weight: 600; font-size: 13px; border-width: 1.5px;">
+        <i class="bi bi-box-arrow-right"></i> Keluar Aplikasi
+    </a>
+
+        </div>
     </div>
 </div>
+
 
 <style>
     :root {
@@ -126,3 +138,27 @@
         border-radius: 10px;
     }
 </style>
+
+<script>
+document.getElementById('btn-logout').addEventListener('click', function(e) {
+    e.preventDefault(); // Nahan biar gak langsung logout
+    const url = this.getAttribute('href');
+
+    Swal.fire({
+        title: 'Yakin mau keluar?',
+        text: "Sesi kamu akan berakhir di sini, Bro.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#2d3436', // Warna hitam pekat sesuai tombol login kamu
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Keluar!',
+        cancelButtonText: 'Batal',
+        borderRadius: '20px'
+        
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url; // Baru deh pindah ke link logout
+        }
+    })
+});
+</script>

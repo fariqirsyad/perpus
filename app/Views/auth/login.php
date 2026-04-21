@@ -120,15 +120,28 @@
                     </button>
 
                 </form>
+<div class="position-absolute top-0 end-0 p-3">
+    <a href="<?= base_url('restore') ?>" class="btn btn-white shadow-sm border-0 d-flex align-items-center gap-2" 
+       style="border-radius: 12px; font-size: 11px; font-weight: 600; color: #dc3545; background: white;">
+        <i class="bi bi-arrow-counterclockwise"></i> RESTORE DB
+    </a>
+</div>
 
-                <div class="text-center">
-                    <span class="text-muted small">Belum punya akun?</span>
-                    <a href="<?= base_url('users/create') ?>" class="text-decoration-none small fw-bold" style="color: #008080;"> Daftar Sekarang</a>
-                </div>
+<div class="text-center mt-4">
+    <hr class="my-3 opacity-25" style="border-top: 1px solid #dee2e6;">
+    <p class="mb-0">
+        <span class="text-muted small">Belum punya akun?</span>
+        <a href="<?= base_url('users/create') ?>" class="text-decoration-none small fw-bold ms-1" style="color: #0891b2;">Daftar Sekarang</a>
+    </p>
+</div>
 
+
+                 
             </div>
         </div>
     </div>
+
+    
 
     <script src="<?= base_url('assets/js/bootstrap.bundle.min.js') ?>"></script>
 </body>

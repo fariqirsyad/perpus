@@ -71,60 +71,67 @@ public function index()
 }
 
     public function pinjam_mandiri()
-    {
-        $db = \Config\Database::connect();
-        $id_user = session()->get('id');
-        $id_buku = $this->request->getPost('id_buku');
+{
+    $db = \Config\Database::connect();
+    $id_user = session()->get('id');
+    $id_buku = $this->request->getPost('id_buku');
 
-        if (!$id_buku) {
-            return redirect()->back()->with('error', 'Pilih buku terlebih dahulu!');
-        }
-
-        // Validasi maksimal pinjam 3 buku aktif
-        $jumlah = $db->table('peminjaman')
-            ->where('id_user', $id_user)
-            ->whereIn('status', ['dipinjam', 'diajukan'])
-            ->countAllResults();
-
-        if ($jumlah >= 3) {
-            return redirect()->back()->with('error', 'Maaf, maksimal pinjam 3 buku!');
-        }
-
-        // Simpan data peminjaman (Pinjam 7 hari)
-        $tgl_kembali = date('Y-m-d', strtotime('+7 days'));
-        $db->table('peminjaman')->insert([
-            'id_user'     => $id_user,
-            'id_buku'     => $id_buku,
-            'tgl_pinjam'  => date('Y-m-d'),
-            'tgl_kembali' => $tgl_kembali,
-            'denda'       => 0, // Inisialisasi denda 0
-            'status'      => 'dipinjam'
-        ]);
-
-        // Kurangi stok buku
-        $db->query("UPDATE buku SET stok = stok - 1 WHERE id_buku = ?", [$id_buku]);
-
-        return redirect()->to('/peminjaman')->with('msg', 'Berhasil meminjam buku!');
+    if (!$id_buku) {
+        return redirect()->back()->with('error', 'Pilih buku terlebih dahulu!');
     }
 
+    // Validasi maksimal pinjam 3 buku aktif
+    $jumlah = $db->table('peminjaman')
+        ->where('id_user', $id_user)
+        ->whereIn('status', ['dipinjam', 'diajukan'])
+        ->countAllResults();
+
+    if ($jumlah >= 3) {
+        return redirect()->back()->with('error', 'Maaf, maksimal pinjam 3 buku!');
+    }
+
+    // Simpan data peminjaman
+    $tgl_kembali = date('Y-m-d', strtotime('+7 days'));
+    $db->table('peminjaman')->insert([
+        'id_user'     => $id_user,
+        'id_buku'     => $id_buku,
+        'tgl_pinjam'  => date('Y-m-d'),
+        'tgl_kembali' => $tgl_kembali,
+        'denda'       => 0,
+        'status'      => 'dipinjam'
+    ]);
+
+    // Kurangi stok buku
+    $db->query("UPDATE buku SET stok = stok - 1 WHERE id_buku = ?", [$id_buku]);
+
+    // PASTIKAN REDIRECT KE HALAMAN YANG ADA SCRIPT SWEETALERT-NYA
+    return redirect()->to('/peminjaman')->with('msg', 'Buku berhasil dipinjam, selamat membaca!');
+}
+
+    // --- UNTUK ANGGOTA (MINTA BALIKIN) ---
     public function ajukan_kembali($id)
     {
         $db = \Config\Database::connect();
-        // Update status jadi 'diajukan'
-        $db->table('peminjaman')->where('id_pinjam', $id)->update([
-            'status' => 'diajukan'
-        ]);
+        
+        // Update status jadi 'diajukan' (bukan kembali, karena admin belum nerima)
+        $update = $db->table('peminjaman')
+            ->where('id_pinjam', $id)
+            ->update([
+                'status' => 'diajukan' 
+            ]);
 
-        return redirect()->to('/peminjaman')->with('msg', 'Permintaan pengembalian dikirim. Serahkan buku ke Admin.');
+        if ($update) {
+            return redirect()->to('/peminjaman')->with('msg', 'Permintaan pengembalian berhasil diajukan!');
+        }
+
+        return redirect()->to('/peminjaman')->with('error', 'Gagal mengajukan pengembalian.');
     }
 
-    // --- FITUR KHUSUS ADMIN ---
-
+    // --- UNTUK ADMIN (TERIMA BUKU) ---
     public function konfirmasi_kembali($id)
     {
         $db = \Config\Database::connect();
 
-        // 1. Ambil data transaksi dan nominal denda per hari dari tabel buku
         $pinjam = $db->table('peminjaman')
                      ->select('peminjaman.*, buku.denda_per_hari')
                      ->join('buku', 'buku.id_buku = peminjaman.id_buku')
@@ -136,34 +143,51 @@ public function index()
             return redirect()->to('/peminjaman')->with('error', 'Data tidak ditemukan.');
         }
 
-        // 2. LOGIKA HITUNG DENDA
+        // Hitung Denda
         $tgl_deadline = strtotime($pinjam->tgl_kembali);
-        $tgl_sekarang = strtotime(date('Y-m-d')); // Tanggal hari ini
+        $tgl_sekarang = strtotime(date('Y-m-d'));
         $total_denda = 0;
 
         if ($tgl_sekarang > $tgl_deadline) {
-            $selisih_detik = $tgl_sekarang - $tgl_deadline;
-            $selisih_hari  = floor($selisih_detik / (60 * 60 * 24)); // Konversi ke hari
-            
-            // Gunakan denda dari database, jika kosong default ke 5000
+            $selisih_hari = floor(($tgl_sekarang - $tgl_deadline) / (60 * 60 * 24));
             $tarif_denda = ($pinjam->denda_per_hari > 0) ? $pinjam->denda_per_hari : 5000;
             $total_denda = $selisih_hari * $tarif_denda;
         }
 
-        // 3. Update Status, Tanggal Dikembalikan, dan Denda
+        // Update Status jadi 'kembali' dan simpan denda
         $db->table('peminjaman')->where('id_pinjam', $id)->update([
             'tgl_dikembalikan' => date('Y-m-d'),
             'denda'            => $total_denda,
             'status'           => 'kembali'
         ]);
 
-        // 4. Kembalikan Stok Buku (+1)
+        // Stok Buku baru nambah di sini (pas dikonfirmasi admin)
         $db->query("UPDATE buku SET stok = stok + 1 WHERE id_buku = ?", [$pinjam->id_buku]);
 
         $pesan = ($total_denda > 0) 
-                 ? "Buku kembali! Member telat $selisih_hari hari, denda: Rp " . number_format($total_denda, 0, ',', '.') 
-                 : "Buku kembali tepat waktu. Tidak ada denda.";
+                 ? "Buku diterima! Terlambat $selisih_hari hari, denda: Rp " . number_format($total_denda, 0, ',', '.') 
+                 : "Buku diterima tepat waktu.";
 
         return redirect()->to('/peminjaman')->with('msg', $pesan);
     }
+
+public function hapus($id)
+{
+    $db = \Config\Database::connect();
+    
+    // Cek apakah data ada
+    $data = $db->table('peminjaman')->where('id_pinjam', $id)->get()->getRow();
+
+    if ($data) {
+        // Proses hapus
+        $hapus = $db->table('peminjaman')->where('id_pinjam', $id)->delete();
+
+        if ($hapus) {
+            return redirect()->to('/peminjaman')->with('msg', 'Data riwayat berhasil dihapus!');
+        }
+    }
+
+    return redirect()->to('/peminjaman')->with('error', 'Gagal menghapus data.');
+}
+
 }

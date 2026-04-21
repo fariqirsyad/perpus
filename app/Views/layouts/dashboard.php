@@ -76,39 +76,39 @@
         <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
             <div class="card-header bg-white border-0 p-4 pb-0">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="fw-bold mb-0"><i class="bi bi-exclamation-circle text-danger me-2"></i>Perlu Perhatian</h5>
-                    <span class="badge" style="background: #fee2e2; color: #ef4444; padding: 8px 15px; border-radius: 10px; font-size: 12px;">
-                        <?= count($deadline_hari_ini ?? []) ?> Buku Jatuh Tempo
-                    </span>
+                    <h5 class="fw-bold mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Aktivitas Terbaru</h5>
+                    <a href="<?= base_url('peminjaman') ?>" class="text-decoration-none small fw-bold text-primary">Lihat Semua</a>
                 </div>
             </div>
             <div class="card-body p-4">
-                <?php if (!empty($deadline_hari_ini)) : ?>
+                <?php if (!empty($recent_transactions)) : ?>
                     <div class="table-responsive">
                         <table class="table table-borderless align-middle">
                             <thead>
-                                <tr class="text-muted" style="font-size: 12px;">
+                                <tr class="text-muted" style="font-size: 12px; letter-spacing: 0.5px;">
                                     <th>PEMINJAM</th>
                                     <th>BUKU</th>
-                                    <th>BATAS PENGEMBALIAN</th>
-                                    <th>AKSI</th>
+                                    <th class="text-center">STATUS</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($deadline_hari_ini as $d) : ?>
+                                <?php foreach ($recent_transactions as $rt) : ?>
                                     <tr>
                                         <td>
-                                            <div class="fw-bold text-dark"><?= $d['username'] ?? 'User' ?></div>
-                                            <small class="text-muted">ID: #<?= $d['id_pinjam'] ?></small>
+                                            <div class="fw-bold text-dark" style="font-size: 14px;"><?= $rt['nama'] ?></div>
+                                            <small class="text-muted" style="font-size: 11px;"><?= date('d M Y', strtotime($rt['tgl_pinjam'])) ?></small>
                                         </td>
-                                        <td><?= $d['judul'] ?></td>
-                                        <td>
-                                            <span class="text-danger fw-bold"><?= $d['tgl_kembali'] ?></span>
+                                        <td style="font-size: 14px; max-width: 250px;" class="text-truncate">
+                                            <?= $rt['judul'] ?>
                                         </td>
-                                        <td>
-                                            <a href="<?= base_url('peminjaman') ?>" class="btn btn-sm btn-light border" style="border-radius: 8px;">
-                                                <i class="bi bi-eye me-1"></i> Detail
-                                            </a>
+                                        <td class="text-center">
+                                            <?php if ($rt['status'] == 'kembali') : ?>
+                                                <span class="badge" style="background: #dcfce7; color: #15803d; padding: 8px 12px; border-radius: 10px; font-size: 11px;">Selesai</span>
+                                            <?php elseif ($rt['status'] == 'diajukan') : ?>
+                                                <span class="badge" style="background: #fef9c3; color: #a16207; padding: 8px 12px; border-radius: 10px; font-size: 11px;">Proses</span>
+                                            <?php else : ?>
+                                                <span class="badge" style="background: #dbeafe; color: #1e40af; padding: 8px 12px; border-radius: 10px; font-size: 11px;">Dipinjam</span>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -118,9 +118,9 @@
                 <?php else : ?>
                     <div class="text-center py-5">
                         <div class="bg-light d-inline-block rounded-circle p-4 mb-3">
-                            <i class="bi bi-check2-circle text-success" style="font-size: 3rem;"></i>
+                            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
                         </div>
-                        <p class="text-muted mt-2">Semua aman! Tidak ada buku yang jatuh tempo hari ini.</p>
+                        <p class="text-muted mt-2">Belum ada aktivitas transaksi terekam.</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -161,7 +161,7 @@
 
                 <div class="mt-4 p-3 bantuan-box" style="border-radius: 15px; background: #f8fafc;">
                     <small class="text-uppercase fw-bold text-muted" style="font-size: 10px; letter-spacing: 1px;">Bantuan</small>
-                    <a href="https://wa.me/628123456789?text=Halo%20Admin%20Perpus%20Pintar,%20saya%20butuh%20bantuan%20terkait..." target="_blank" class="d-flex align-items-center mt-2 text-decoration-none">
+                    <a href="https://wa.me/628123456789" target="_blank" class="d-flex align-items-center mt-2 text-decoration-none">
                         <div class="bg-info-subtle p-2 rounded-circle me-3">
                             <i class="bi bi-whatsapp text-info fs-5"></i>
                         </div>
@@ -174,9 +174,7 @@
             </div>
         </div>
     </div>
-</div>
-
-<div class="modal" id="modalTambahBuku" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" style="background: rgba(0,0,0,0.5);">
+</div> <div class="modal" id="modalTambahBuku" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" style="background: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
         <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
             <div class="modal-header border-0 p-4 pb-0">
@@ -284,7 +282,6 @@
                             </div>
                         </div>
                     </div>
-                    <i class="bi bi-shield-check position-absolute" style="bottom: -20px; right: -10px; font-size: 150px; opacity: 0.1;"></i>
                 </div>
 
                 <div class="bg-white p-4 text-center">

@@ -41,6 +41,7 @@ $routes->get('users/wa/(:num)', 'Users::wa/$1', $allRole); // aksi kirim ke what
 $routes->get('peminjaman', 'Peminjaman::index');
 $routes->post('peminjaman/simpan', 'Peminjaman::tambah');
 $routes->get('peminjaman/kembalikan/(:num)', 'Peminjaman::kembalikan/$1');
+$routes->get('peminjaman/hapus/(:num)', 'Peminjaman::hapus/$1');
 
 $routes->get('peminjaman/katalog', 'Peminjaman::katalog');
 $routes->post('peminjaman/pinjam_mandiri', 'Peminjaman::pinjam_mandiri');
@@ -56,3 +57,9 @@ $routes->post('buku/update/(:num)', 'Buku::update/$1');
 $routes->get('/', 'Home::index');
 $routes->get('dashboard', 'Home::index'); // Tambahkan ini juga biar aman
 
+$routes->get('/backup', 'Backup::index');
+
+$routes->get('/restore', 'Restore::index');
+$routes->post('/restore/auth', 'Restore::auth');
+$routes->get('/restore/form', 'Restore::form');
+$routes->post('/restore/process', 'Restore::process');

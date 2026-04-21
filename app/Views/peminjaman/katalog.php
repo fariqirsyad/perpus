@@ -168,6 +168,54 @@
 </style>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. CEK PESAN BERHASIL (Flashdata 'msg')
+        <?php if (session()->getFlashdata('msg')) : ?>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '<?= session()->getFlashdata('msg') ?>',
+                showConfirmButton: false,
+                timer: 2500,
+                customClass: { popup: 'rounded-4' }
+            });
+        <?php endif; ?>
+
+        // 2. CEK PESAN ERROR (Flashdata 'error')
+        <?php if (session()->getFlashdata('error')) : ?>
+            Swal.fire({
+                icon: 'error',
+                title: 'Waduh...',
+                text: '<?= session()->getFlashdata('error') ?>',
+                confirmButtonColor: '#008080',
+                customClass: { popup: 'rounded-4' }
+            });
+        <?php endif; ?>
+
+        // 3. KONFIRMASI PINJAM (Tombol Submit)
+        document.querySelectorAll('.btn-submit-pinjam').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault(); 
+                const form = this.closest('.form-pinjam');
+                
+                Swal.fire({
+                    title: 'Konfirmasi Pinjam',
+                    text: "Yakin ingin meminjam buku ini?",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#008080',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Pinjam!',
+                    cancelButtonText: 'Batal',
+                    customClass: { popup: 'rounded-4' }
+                }).then((result) => {
+                    if (result.isConfirmed) { form.submit(); }
+                });
+            });
+        });
+    });
+
+    // 4. DESKRIPSI (Tetap bisa dipanggil dari luar)
     function alertDeskripsi(judul, deskripsi) {
         Swal.fire({
             title: judul,
@@ -175,36 +223,11 @@
             icon: 'info',
             confirmButtonColor: '#008080',
             confirmButtonText: 'Tutup',
-            borderRadius: '20px'
+            customClass: { popup: 'rounded-4' }
         });
     }
-
-    document.querySelectorAll('.btn-submit-pinjam').forEach(button => {
-        button.addEventListener('click', function(e) {
-            const form = this.closest('.form-pinjam');
-            Swal.fire({
-                title: 'Konfirmasi Pinjam',
-                text: "Yakin ingin meminjam buku ini?",
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#008080',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Pinjam!',
-                cancelButtonText: 'Batal',
-                borderRadius: '20px'
-            }).then((result) => {
-                if (result.isConfirmed) { form.submit(); }
-            });
-        });
-    });
-
-    <?php if (session()->getFlashdata('msg')) : ?>
-        Swal.fire({ icon: 'success', title: 'Berhasil!', text: '<?= session()->getFlashdata('msg') ?>', showConfirmButton: false, timer: 2500, borderRadius: '20px' });
-    <?php endif; ?>
-
-    <?php if (session()->getFlashdata('error')) : ?>
-        Swal.fire({ icon: 'error', title: 'Waduh...', text: '<?= session()->getFlashdata('error') ?>', confirmButtonColor: '#008080', borderRadius: '20px' });
-    <?php endif; ?>
 </script>
+
+
 
 <?= $this->endSection() ?>

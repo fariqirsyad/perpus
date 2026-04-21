@@ -99,15 +99,18 @@
                                     <span class="text-muted opacity-50">- belum -</span>
                                 <?php endif; ?>
                             </td>
-                            <td>
-                                <?php if ($t['denda'] > 0) : ?>
-                                    <span class="badge bg-danger-soft text-danger p-2" style="background: #fee2e2; border-radius: 8px;">
-                                        Rp <?= number_format($t['denda'], 0, ',', '.') ?>
-                                    </span>
-                                <?php else : ?>
-                                    <span class="text-muted small">Rp 0</span>
-                                <?php endif; ?>
-                            </td>
+                            <td class="text-center">
+    <?php if ($t['denda'] > 0) : ?>
+        <a href="javascript:void(0)" 
+           onclick="showDetailDenda('<?= $t['tgl_kembali'] ?>', '<?= $t['tgl_dikembalikan'] ?>', <?= $t['denda'] ?>)"
+           class="badge bg-light text-danger border border-danger d-inline-block" 
+           style="border-radius: 8px; padding: 6px 10px; cursor: pointer; text-decoration: none;">
+           Rp <?= number_format($t['denda'], 0, ',', '.') ?>
+        </a>
+    <?php else : ?>
+        <span class="text-muted small">Rp 0</span>
+    <?php endif; ?>
+</td>
                             <td class="text-center">
                                 <?php if ($t['status'] == 'dipinjam') : ?>
                                     <span class="badge" style="background: #cfe2ff; color: #084298; border-radius: 8px; padding: 6px 12px;">Sedang Dipinjam</span>
@@ -118,25 +121,40 @@
                                 <?php endif; ?>
                             </td>
                             <td class="text-center pe-4">
-                                <?php if (session('role') == 'anggota' && $t['status'] == 'dipinjam') : ?>
-                                    <a href="<?= base_url('peminjaman/ajukan_kembali/' . $t['id_pinjam']) ?>" 
-                                       onclick="return confirm('Ajukan pengembalian buku ini?')" 
-                                       class="btn btn-sm btn-orange text-white" style="background: #fd7e14; border-radius: 8px; font-size: 12px;">
-                                       <i class="bi bi-arrow-left-right me-1"></i> Kembalikan
-                                    </a>
-                                
-                                <?php elseif (session('role') == 'admin' && $t['status'] == 'diajukan') : ?>
-                                    <a href="<?= base_url('peminjaman/konfirmasi_kembali/' . $t['id_pinjam']) ?>" 
-                                       class="btn btn-sm btn-success" style="border-radius: 8px; font-size: 12px;">
-                                       Konfirmasi Terima
-                                    </a>
-                                
-                                <?php elseif ($t['status'] == 'kembali') : ?>
-                                    <span class="text-success small fw-bold"><i class="bi bi-check-circle-fill"></i> Selesai</span>
-                                <?php else : ?>
-                                    <span class="text-muted small">-</span>
-                                <?php endif; ?>
-                            </td>
+    <div class="d-flex justify-content-center gap-1">
+        <?php if (session('role') == 'anggota' && $t['status'] == 'dipinjam') : ?>
+            <a href="<?= base_url('peminjaman/ajukan_kembali/'.$t['id_pinjam']) ?>" 
+               class="btn btn-sm btn-primary btn-kembali" 
+               style="border-radius: 8px;">
+               Ajukan Pengembalian
+            </a>
+                                    
+        <?php elseif (session('role') == 'admin' && $t['status'] == 'diajukan') : ?>
+            <a href="<?= base_url('peminjaman/konfirmasi_kembali/' . $t['id_pinjam']) ?>" 
+               class="btn btn-sm btn-success btn-konfirmasi" 
+               style="border-radius: 8px; font-size: 12px;">
+               Konfirmasi Terima
+            </a>
+                                    
+        <?php elseif ($t['status'] == 'kembali') : ?>
+            <span class="badge bg-light text-success border border-success me-1" style="border-radius: 8px; padding: 6px 10px;">
+                <i class="bi bi-check-circle-fill"></i> Selesai
+            </span>
+            
+            <?php if (session('role') == 'admin') : ?>
+                <a href="<?= base_url('peminjaman/hapus/' . $t['id_pinjam']) ?>" 
+                   class="btn btn-sm btn-outline-danger btn-hapus" 
+                   title="Hapus Riwayat"
+                   style="border-radius: 8px;">
+                   <i class="bi bi-trash"></i>
+                </a>
+            <?php endif; ?>
+
+        <?php else : ?>
+            <span class="text-muted small">-</span>
+        <?php endif; ?>
+    </div>
+</td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -144,5 +162,175 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cek apakah ada pesan sukses dari halaman sebelumnya (katalog)
+        <?php if (session()->getFlashdata('msg')) : ?>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '<?= session()->getFlashdata('msg') ?>',
+                showConfirmButton: false,
+                timer: 2500,
+                customClass: {
+                    popup: 'rounded-4'
+                }
+            });
+        <?php endif; ?>
+
+        // Cek kalau ada pesan error
+        <?php if (session()->getFlashdata('error')) : ?>
+            Swal.fire({
+                icon: 'error',
+                title: 'Waduh...',
+                text: '<?= session()->getFlashdata('error') ?>',
+                confirmButtonColor: '#008080',
+                customClass: {
+                    popup: 'rounded-4'
+                }
+            });
+        <?php endif; ?>
+    });
+</script>
+
+<script>
+document.querySelectorAll('.btn-kembali').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault(); // Nahan biar gak langsung proses
+        const url = this.getAttribute('href');
+
+        Swal.fire({
+            title: 'Kembalikan Buku?',
+            text: "Apakah kamu yakin ingin mengajukan pengembalian buku ini?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#008080', // Pakai Teal biar senada sama tombol Pinjam
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Kembalikan!',
+            cancelButtonText: 'Batal',
+            customClass: {
+                popup: 'rounded-4'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url; // Proses ke controller
+            }
+        })
+    });
+});
+</script>
+
+<script>
+document.addEventListener('click', function (e) {
+    // 1. Logika untuk Ajukan Pengembalian (Anggota)
+    if (e.target.closest('.btn-kembali')) {
+        e.preventDefault();
+        const url = e.target.closest('.btn-kembali').getAttribute('href');
+        Swal.fire({
+            title: 'Ajukan Kembali?',
+            text: "Buku akan diajukan untuk pengembalian.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#008080',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Ajukan!',
+            cancelButtonText: 'Batal',
+            customClass: { popup: 'rounded-4' }
+        }).then((result) => {
+            if (result.isConfirmed) window.location.href = url;
+        });
+    }
+
+    // 2. Logika untuk Konfirmasi Terima (Admin)
+    if (e.target.closest('.btn-konfirmasi')) {
+        e.preventDefault();
+        const url = e.target.closest('.btn-konfirmasi').getAttribute('href');
+        Swal.fire({
+            title: 'Konfirmasi Terima?',
+            text: "Apakah buku benar-benar sudah diterima?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Sudah Terima',
+            cancelButtonText: 'Batal',
+            customClass: { popup: 'rounded-4' }
+        }).then((result) => {
+            if (result.isConfirmed) window.location.href = url;
+        });
+    }
+});
+</script>
+
+<script>
+document.addEventListener('click', function (e) {
+    // 1. CARI APAKAH YANG DIKLIK ADALAH TOMBOL HAPUS
+    const btnHapus = e.target.closest('.btn-hapus');
+    
+    if (btnHapus) {
+        // STOP! Jangan jalanin link aslinya dulu
+        e.preventDefault();
+        e.stopImmediatePropagation(); 
+
+        const url = btnHapus.getAttribute('href');
+
+        Swal.fire({
+            title: 'Hapus Riwayat?',
+            text: "Data yang dihapus nggak bisa dikembalikan lagi loh!",
+            icon: 'warning',
+            iconColor: '#f8bb86',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545', // Merah cerah sesuai gambar
+            cancelButtonColor: '#373d3f',  // Abu gelap sesuai gambar
+            confirmButtonText: 'Ya, Hapus Saja!',
+            cancelButtonText: 'Batal',
+            customClass: {
+                popup: 'rounded-4'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Baru jalanin link-nya kalau tombol "Ya" diklik
+                window.location.href = url;
+            }
+        });
+    }
+});
+</script>
+
+<script>
+function showDetailDenda(tglDeadline, tglKembali, totalDenda) {
+    // Hitung selisih hari sederhana di JS
+    const deadline = new Date(tglDeadline);
+    const kembali = new Date(tglKembali);
+    const diffTime = Math.abs(kembali - deadline);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Asumsi tarif denda 5000 (sesuaikan dengan controller kamu)
+    const tarif = 5000; 
+
+    Swal.fire({
+        title: 'Rincian Denda',
+        html: `
+            <div class="text-start p-2" style="font-size: 14px;">
+                <p>Batas Kembali: <b>${tglDeadline}</b></p>
+                <p>Dikembalikan: <b>${tglKembali}</b></p>
+                <hr>
+                <p class="mb-1">Keterlambatan: <b>${diffDays} Hari</b></p>
+                <p class="mb-0">Tarif Denda: <b>Rp ${tarif.toLocaleString('id-ID')} / hari</b></p>
+                <h5 class="mt-3 text-danger text-center">
+                    Total: Rp ${totalDenda.toLocaleString('id-ID')}
+                </h5>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonColor: '#008080',
+        confirmButtonText: 'Oke, Paham',
+        customClass: {
+            popup: 'rounded-4'
+        }
+    });
+}
+</script>
 
 <?= $this->endSection() ?>
