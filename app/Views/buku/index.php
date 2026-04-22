@@ -101,15 +101,23 @@
         <?= $b['stok'] ?> Eks
     </span>
 </td>
-                            <td class="text-center pe-4">
+                          <td class="text-center pe-4">
     <div class="d-flex justify-content-center gap-1">
-        <button type="button" class="btn btn-sm btn-info text-white" onclick='showDetail(<?= json_encode($b) ?>)' title="Lihat Detail" style="border-radius: 8px;">
+        <button type="button" class="btn btn-sm btn-info text-white" 
+                onclick='showDetail(<?= htmlspecialchars(json_encode($b), ENT_QUOTES, "UTF-8") ?>)' 
+                style="border-radius: 8px; background: #22d3ee; border: none;">
             <i class="bi bi-eye"></i>
         </button>
-        <button type="button" class="btn btn-sm btn-outline-primary" onclick='showEdit(<?= json_encode($b) ?>)' style="border-radius: 8px;">
+
+        <button type="button" class="btn btn-sm btn-outline-primary" 
+                onclick='showEdit(<?= htmlspecialchars(json_encode($b), ENT_QUOTES, "UTF-8") ?>)' 
+                style="border-radius: 8px;">
             <i class="bi bi-pencil-square"></i>
         </button>
-        <a href="<?= base_url('buku/hapus/'.$b['id_buku']) ?>" class="btn btn-sm btn-outline-danger btn-hapus" style="border-radius: 8px;">
+
+        <a href="<?= base_url('buku/hapus/'.$b['id_buku']) ?>" 
+           class="btn btn-sm btn-outline-danger btn-hapus" 
+           style="border-radius: 8px;">
             <i class="bi bi-trash"></i>
         </a>
     </div>
@@ -207,8 +215,9 @@
     <div class="modal-custom-card" style="background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="fw-bold mb-0">Edit Data Buku</h4>
-            <button class="btn-close" onclick="hideEdit()"></button>
+            <button type="button" class="btn-close" onclick="hideEdit()"></button>
         </div>
+        
         <form id="formEdit" action="" method="post" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <div class="row g-3">
@@ -227,15 +236,15 @@
                 </div>
 
                 <div class="col-md-6">
-    <label class="small fw-bold">KATEGORI</label>
-    <select name="kategori" id="edit_kategori" class="form-select" style="border-radius: 8px;">
-        <?php foreach($list_kategori as $k): ?>
-            <?php if($k != 'Semua'): ?>
-                <option value="<?= $k ?>"><?= $k ?></option>
-            <?php endif; ?>
-        <?php endforeach; ?>
-    </select>
-</div>
+                    <label class="small fw-bold">KATEGORI</label>
+                    <select name="kategori" id="edit_kategori" class="form-select" style="border-radius: 8px;">
+                        <?php foreach($list_kategori as $k): ?>
+                            <?php if($k != 'Semua'): ?>
+                                <option value="<?= $k ?>"><?= $k ?></option>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
                 <div class="col-md-6">
                     <label class="small fw-bold">PENERBIT</label>
                     <input type="text" id="edit_penerbit" name="penerbit" class="form-control" style="border-radius: 8px;" placeholder="Nama penerbit">
@@ -264,6 +273,7 @@
                     <input type="file" name="cover" class="form-control" style="border-radius: 8px;">
                 </div>
             </div>
+            
             <div class="mt-4 text-end">
                 <button type="button" class="btn btn-light me-2" onclick="hideEdit()">Batal</button>
                 <button type="submit" class="btn btn-primary" style="background-color: #06b6d4; border: none; border-radius: 8px; font-weight: bold;">Update Data</button>
@@ -308,10 +318,11 @@
 </div>
 
 <script>
+    // --- MODAL TAMBAH ---
     function showTambah() { document.getElementById('modalTambah').style.display = 'flex'; }
     function hideTambah() { document.getElementById('modalTambah').style.display = 'none'; }
-    
 
+    // --- MODAL DETAIL ---
     function showDetail(data) {
         document.getElementById('modalDetail').style.display = 'flex';
         document.getElementById('det_id').innerText = '#B-' + data.id_buku;
@@ -321,64 +332,92 @@
         document.getElementById('det_penerbit').innerText = data.penerbit || '-';
         document.getElementById('det_kategori').innerText = data.kategori || '-';
         document.getElementById('det_tahun').innerText = data.tahun_terbit || '-';
-        document.getElementById('det_denda').innerText = 'Rp ' + parseInt(data.denda_per_hari).toLocaleString();
+        
+        const denda = data.denda_per_hari ? parseInt(data.denda_per_hari).toLocaleString() : '0';
+        document.getElementById('det_denda').innerText = 'Rp ' + denda;
         
         const coverPath = "<?= base_url('uploads/cover/') ?>/" + (data.cover || 'default.jpg');
         document.getElementById('det_cover').src = coverPath;
     }
     function hideDetail() { document.getElementById('modalDetail').style.display = 'none'; }
 
+    // --- MODAL EDIT ---
     function showEdit(data) {
-    document.getElementById('modalEdit').style.display = 'flex';
-    document.getElementById('formEdit').action = "<?= base_url('buku/update') ?>/" + data.id_buku;
-    document.getElementById('edit_judul').value = data.judul;
-    document.getElementById('edit_penulis').value = data.penulis;
-    document.getElementById('edit_isbn').value = data.isbn || '';
-    document.getElementById('edit_kategori').value = data.kategori || '';
-    document.getElementById('edit_penerbit').value = data.penerbit || '';
-    document.getElementById('edit_tahun').value = data.tahun_terbit || '';
-    document.getElementById('edit_stok').value = data.stok;
-    document.getElementById('edit_denda').value = data.denda_per_hari;
-    
-    // TAMBAHKAN BARIS INI
-    document.getElementById('edit_deskripsi').value = data.deskripsi || '';
-    
-    // Optional: Kunci scroll body biar ga goyang pas edit dibuka
-    document.body.style.overflow = 'hidden';
-}
+        const form = document.getElementById('formEdit');
+        form.action = "<?= base_url('buku/update') ?>/" + data.id_buku;
 
-function hideEdit() { 
-    document.getElementById('modalEdit').style.display = 'none'; 
-    // Balikin scroll body pas ditutup
-    document.body.style.overflow = 'auto';
-}
-</script>
+        document.getElementById('edit_judul').value = data.judul;
+        document.getElementById('edit_penulis').value = data.penulis;
+        document.getElementById('edit_isbn').value = data.isbn || '';
+        document.getElementById('edit_kategori').value = data.kategori;
+        document.getElementById('edit_penerbit').value = data.penerbit || '';
+        document.getElementById('edit_deskripsi').value = data.deskripsi || '';
+        document.getElementById('edit_tahun').value = data.tahun_terbit;
+        document.getElementById('edit_stok').value = data.stok;
+        document.getElementById('edit_denda').value = data.denda_per_hari;
 
-<script>
-document.querySelectorAll('.btn-hapus').forEach(button => {
-    button.addEventListener('click', function(e) {
-        e.preventDefault(); // Nahan link biar gak langsung hapus
-        const url = this.getAttribute('href');
+        document.getElementById('modalEdit').style.display = 'flex';
+    }
+    function hideEdit() { document.getElementById('modalEdit').style.display = 'none'; }
 
-        Swal.fire({
-            title: 'Hapus Buku?',
-            text: "Data yang dihapus nggak bisa dikembalikan lagi loh!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33', // Merah untuk hapus
-            cancelButtonColor: '#2d3436', // Hitam/Abu tua untuk batal
-            confirmButtonText: 'Ya, Hapus Saja!',
-            cancelButtonText: 'Batal',
-            customClass: {
-                popup: 'rounded-4'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = url;
-            }
-        })
+    // --- LOGIC TUTUP MODAL ---
+    window.onclick = function(event) {
+        const mTambah = document.getElementById('modalTambah');
+        const mEdit = document.getElementById('modalEdit');
+        const mDetail = document.getElementById('modalDetail');
+        
+        if (event.target == mTambah) hideTambah();
+        if (event.target == mEdit) hideEdit();
+        if (event.target == mDetail) hideDetail();
+    }
+
+    <?php if (session()->getFlashdata('msg')) : ?>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <script>
+        // Pake timer dikit buat mastiin browser udah siap
+        setTimeout(function() {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '<?= session()->getFlashdata('msg') ?>',
+                showConfirmButton: false,
+                timer: 2500,
+                zIndex: 9999
+            });
+        }, 500); // delay 0.5 detik
+    </script>
+<?php endif; ?>
+
+    // --- SWEETALERT HAPUS (ANIMASI MESSAGE) ---
+    // Pake document click supaya tombol tetep jalan meski ada pagination/filter
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('.btn-hapus')) {
+            e.preventDefault();
+            const url = e.target.closest('.btn-hapus').getAttribute('href');
+
+            Swal.fire({
+                title: 'Hapus Buku?',
+                text: "Data yang dihapus nggak bisa dikembalikan lagi loh!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#2d3436',
+                confirmButtonText: 'Ya, Hapus Saja!',
+                cancelButtonText: 'Batal',
+                customClass: {
+                    popup: 'rounded-4'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
+        }
     });
-});
+
+
+    
 </script>
+
+
 
 <?= $this->endSection() ?>

@@ -115,26 +115,25 @@
                                 </td>
 
                                 <?php if (session()->get('role') == 'admin') : ?>
-    <td class="text-center pe-4">
-        <div class="d-flex justify-content-center gap-2">
-            <a href="<?= base_url('users/wa/' . $u['id']) ?>" 
-               target="_blank" 
-               class="btn btn-sm btn-light text-success border-0 shadow-sm" 
-               title="Kirim WhatsApp"
-               style="border-radius: 10px; padding: 8px 10px;">
-                <i class="bi bi-whatsapp"></i>
-            </a>
+                                    <td class="text-center pe-4">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="<?= base_url('users/wa/' . $u['id']) ?>" 
+                                               target="_blank" 
+                                               class="btn btn-sm btn-light text-success border-0 shadow-sm" 
+                                               title="Kirim WhatsApp"
+                                               style="border-radius: 10px; padding: 8px 10px;">
+                                                <i class="bi bi-whatsapp"></i>
+                                            </a>
 
-            <a href="<?= base_url('users/delete/' . $u['id']) ?>" 
-               class="btn btn-sm btn-light text-danger border-0 shadow-sm" 
-               title="Hapus User"
-               onclick="return confirm('Hapus user ini?')"
-               style="border-radius: 10px; padding: 8px 10px;">
-                <i class="bi bi-trash"></i>
-            </a>
-        </div>
-    </td>
-<?php endif; ?>
+                                            <a href="<?= base_url('users/delete/' . $u['id']) ?>" 
+                                               class="btn btn-sm btn-light text-danger border-0 shadow-sm btn-hapus-user" 
+                                               title="Hapus User"
+                                               style="border-radius: 10px; padding: 8px 10px;">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -151,8 +150,13 @@
     </div>
 </div>
 
+<div class="mt-4 d-flex justify-content-center">
+    <div class="pagination-wrapper">
+        <?= $pager->links() ?>
+    </div>
+</div>
+
 <style>
-    /* Style tambahan biar transisinya halus */
     .profile-img {
         object-fit: cover; 
         border: 2px solid #fff;
@@ -183,10 +187,47 @@
     }
 </style>
 
-<div class="mt-4 d-flex justify-content-center">
-    <div class="pagination-wrapper">
-        <?= $pager->links() ?>
-    </div>
-</div>
+<script>
+    // --- KONFIRMASI HAPUS ---
+    document.addEventListener('click', function (e) {
+        const btnHapus = e.target.closest('.btn-hapus-user');
+        if (btnHapus) {
+            e.preventDefault();
+            const url = btnHapus.getAttribute('href');
+
+            Swal.fire({
+                title: 'Hapus User?',
+                text: "Data user ini akan dihapus secara permanen!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#2d3436',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                customClass: {
+                    popup: 'rounded-4'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
+        }
+    });
+
+    // --- NOTIFIKASI BERHASIL ---
+    <?php if (session()->getFlashdata('success')) : ?>
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: '<?= session()->getFlashdata('success') ?>',
+            showConfirmButton: false,
+            timer: 2000,
+            customClass: {
+                popup: 'rounded-4'
+            }
+        });
+    <?php endif; ?>
+</script>
 
 <?= $this->endSection() ?>
