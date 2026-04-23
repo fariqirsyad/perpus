@@ -229,37 +229,35 @@
     });
 
     // Fungsi Detail Denda
- function showDetailDenda(tglDeadline, tglKembali, totalDenda) {
-    // 1. Pakai parsing tanggal yang lebih aman untuk JS
-    const deadline = new Date(tglDeadline);
-    // Jika belum kembali, pakai tanggal hari ini
-    const tglSelesai = tglKembali && tglKembali !== '0000-00-00' ? new Date(tglKembali) : new Date();
+
+
+function showDetailDenda(tglDeadline, tglKembali, totalDenda) {
+    // 1. Ambil tanggal hari ini (tanpa jam)
+    const sekarang = new Date();
+    const d2 = tglKembali && tglKembali !== '0000-00-00' ? new Date(tglKembali) : sekarang;
     
-    // 2. KUNCI UTAMA: Reset jam, menit, detik ke NOL agar murni hitung tanggal
-    deadline.setHours(0, 0, 0, 0);
-    tglSelesai.setHours(0, 0, 0, 0);
+    // 2. Format ke YYYY-MM-DD biar murni tanggal
+    const date1 = new Date(tglDeadline).setHours(0,0,0,0);
+    const date2 = new Date(d2).setHours(0,0,0,0);
 
     let diffDays = 0;
-    if (tglSelesai > deadline) {
-        // Hitung selisih milidetik lalu bagi dengan jumlah milidetik dalam sehari
-        const diffTime = tglSelesai.getTime() - deadline.getTime();
-        diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    if (date2 > date1) {
+        // Hitung selisih hari
+        const timeDiff = date2 - date1;
+        diffDays = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
     }
 
-    const tarif = 5000; 
-    const statusText = tglKembali && tglKembali !== '0000-00-00' ? 'Sudah Dikembalikan' : 'Belum Kembali (Berjalan)';
+    const tarif = 5000;
+    // Hitung denda real-time di JS agar sinkron dengan hari yang tampil
+    const dendaRealtime = diffDays * tarif;
 
     Swal.fire({
         title: 'Rincian Keterlambatan',
         html: `
-            <div class="text-start p-2" style="font-size: 14px; font-family: 'Inter', sans-serif;">
+            <div class="text-start p-2" style="font-size: 14px;">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted">Batas Deadline:</span>
                     <span class="fw-bold text-dark">${tglDeadline}</span>
-                </div>
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Status:</span>
-                    <span class="fw-bold">${statusText}</span>
                 </div>
                 <hr style="border-top: 1px dashed #ddd;">
                 <div class="d-flex justify-content-between mb-1">
@@ -272,16 +270,12 @@
                 </div>
                 <div class="mt-3 p-3 text-center rounded-3" style="background-color: #fff5f5; border: 1px solid #feb2b2;">
                     <p class="mb-1 small text-muted text-uppercase fw-bold">Total Denda</p>
-                    <h3 class="mb-0 text-danger fw-bold">Rp ${totalDenda.toLocaleString('id-ID')}</h3>
+                    <h2 class="mb-0 text-danger fw-bold">Rp ${dendaRealtime.toLocaleString('id-ID')}</h2>
                 </div>
             </div>
         `,
-        icon: diffDays > 0 ? 'warning' : 'info',
         confirmButtonColor: '#2d3436',
-        confirmButtonText: 'Tutup',
-        customClass: {
-            popup: 'rounded-4'
-        }
+        confirmButtonText: 'Tutup'
     });
 }
 </script>
