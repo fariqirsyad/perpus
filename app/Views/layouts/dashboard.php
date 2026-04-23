@@ -8,52 +8,57 @@
 
 <div class="row g-4 mb-4">
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm" style="border-radius: 20px; background: linear-gradient(45deg, #06b6d4, #0891b2); color: white;">
-            <div class="card-body p-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 20px; background: linear-gradient(45deg, #06b6d4, #0891b2); color: white; height: 100%;">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-uppercase mb-2" style="font-size: 12px; opacity: 0.8; letter-spacing: 1px;">Total Koleksi</h6>
+                        <h6 class="text-uppercase mb-2" style="font-size: 12px; opacity: 0.8; letter-spacing: 1px; font-weight: 500;">Total Koleksi</h6>
                         <h1 class="display-5 fw-bold mb-0"><?= $total_buku ?></h1>
                     </div>
-                    <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                    <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style="width: 75px; height: 75px;">
                         <i class="bi bi-book fs-1"></i>
                     </div>
                 </div>
-                <p class="mt-3 mb-0" style="font-size: 13px; opacity: 0.9;">Judul buku terdaftar</p>
+                <p class="mt-4 mb-0" style="font-size: 13px; opacity: 0.9;">Judul buku terdaftar</p>
             </div>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm" style="border-radius: 20px; background: white; border: 1px solid #e2e8f0 !important;">
-            <div class="card-body p-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 20px; background: white; border: 1px solid #e2e8f0 !important; height: 100%;">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-uppercase mb-2" style="font-size: 12px; color: #64748b; letter-spacing: 1px;">Sedang Dipinjam</h6>
+                        <h6 class="text-uppercase mb-2" style="font-size: 12px; color: #64748b; letter-spacing: 1px; font-weight: 500;">Sedang Dipinjam</h6>
                         <h1 class="display-5 fw-bold mb-0 text-dark"><?= $total_pinjam ?></h1>
                     </div>
-                    <div class="bg-light rounded-circle p-3 text-primary">
+                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center text-primary" style="width: 75px; height: 75px;">
                         <i class="bi bi-arrow-repeat fs-1"></i>
                     </div>
                 </div>
-                <p class="mt-3 mb-0 text-muted" style="font-size: 13px;">Transaksi aktif saat ini</p>
+                <p class="mt-4 mb-0 text-muted" style="font-size: 13px;">Transaksi aktif saat ini</p>
             </div>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="card border-0 shadow-sm" style="border-radius: 20px; background: white; border: 1px solid #e2e8f0 !important;">
-            <div class="card-body p-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 20px; background: white; border: 1px solid #e2e8f0 !important; height: 100%;">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-uppercase mb-2" style="font-size: 12px; color: #64748b; letter-spacing: 1px;">Status Sistem</h6>
-                        <h1 class="display-5 fw-bold mb-0 text-success">Online</h1>
+                        <h6 class="text-uppercase mb-2" style="font-size: 12px; color: #64748b; letter-spacing: 1px; font-weight: 500;">Status Pengembalian</h6>
+                        <h1 class="display-5 fw-bold mb-0 <?= ($jumlah_terlambat > 0) ? 'text-danger' : 'text-dark' ?>">
+                            <?= ($jumlah_terlambat > 0) ? $jumlah_terlambat : 'Aman' ?>
+                        </h1>
                     </div>
-                    <div class="bg-light rounded-circle p-3 text-success">
-                        <i class="bi bi-shield-check fs-1"></i>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width: 75px; height: 75px; background-color: <?= ($jumlah_terlambat > 0) ? '#fff5f5' : '#f8fafc' ?>; flex-shrink: 0;">
+                        <i class="bi <?= ($jumlah_terlambat > 0) ? 'bi-exclamation-triangle text-danger' : 'bi-shield-check text-success' ?> fs-1"></i>
                     </div>
                 </div>
-                <p class="mt-3 mb-0 text-muted" style="font-size: 13px;">Sistem berjalan normal</p>
+                <p class="mt-4 mb-0 text-muted" style="font-size: 13px;">
+                    <?= ($jumlah_terlambat > 0) ? 'Buku melewati batas waktu' : 'Sistem berjalan normal' ?>
+                </p>
             </div>
         </div>
     </div>
