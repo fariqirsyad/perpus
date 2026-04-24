@@ -21,4 +21,19 @@ class PeminjamanModel extends Model {
         
         return $builder->findAll();
     }
+
+    public function konfirmasi_kembali($id) {
+    $peminjamanModel = new \App\Models\PeminjamanModel(); // Sesuaikan nama model lu
+    $dataLama = $peminjamanModel->find($id);
+
+    // ... hitung denda sama kayak di atas ...
+
+    $peminjamanModel->update($id, [
+        'status'           => 'kembali',
+        'tgl_dikembalikan' => date('Y-m-d'),
+        'denda'            => $denda,
+        'status_bayar'     => 'lunas'
+    ]);
+}
+
 }

@@ -114,35 +114,35 @@ class Peminjaman extends BaseController
     }
 
     // --- UPDATE FITUR KONFIRMASI ADMIN ---
-    public function konfirmasi_kembali($id)
-{
+    public function konfirmasi_kembali($id) {
+    // Inisialisasi DB manual
     $db = \Config\Database::connect();
-    $pinjam = $db->table('peminjaman')
-                 ->select('peminjaman.*, buku.denda_per_hari')
-                 ->join('buku', 'buku.id_buku = peminjaman.id_buku')
-                 ->where('id_pinjam', $id)->get()->getRow();
-
-    // PAKSA hitungan tanggal murni
-    $deadline = strtotime(date('Y-m-d', strtotime($pinjam->tgl_kembali)));
-    $hari_ini = strtotime(date('Y-m-d'));
     
-    $total_denda = 0;
-    if ($hari_ini > $deadline) {
-        $selisih_detik = $hari_ini - $deadline;
-        $selisih_hari = floor($selisih_detik / (60 * 60 * 24));
-        
-        $tarif = ($pinjam->denda_per_hari > 0) ? $pinjam->denda_per_hari : 5000;
-        $total_denda = $selisih_hari * $tarif;
+    $dataLama = $db->table('peminjaman')->getWhere(['id_pinjam' => $id])->getRowArray();
+    
+    if (!$dataLama) {
+        return redirect()->back()->with('error', 'Data tidak ditemukan.');
     }
 
-    $db->table('peminjaman')->where('id_pinjam', $id)->update([
-        'tgl_dikembalikan' => date('Y-m-d'),
-        'denda'            => $total_denda,
-        'status'           => 'kembali'
-    ]);
+    // Logic hitung denda sederhana (biar sinkron sama View)
+    $tgl_kembali = new \DateTime($dataLama['tgl_kembali']);
+    $tgl_sekarang = new \DateTime(date('Y-m-d'));
+    $denda = 0;
 
-    $db->query("UPDATE buku SET stok = stok + 1 WHERE id_buku = ?", [$pinjam->id_buku]);
-    return redirect()->to('/peminjaman')->with('msg', 'Buku kembali. Denda: Rp '.number_format($total_denda,0,',','.'));
+    if ($tgl_sekarang > $tgl_kembali) {
+        $selisih = $tgl_sekarang->diff($tgl_kembali);
+        $denda = $selisih->days * 5000; // sesuaikan tarif lu
+    }
+
+    // Update ke database
+    $db->table('peminjaman')->where('id_pinjam', $id)->update([
+        'status'           => 'kembali',
+        'tgl_dikembalikan' => date('Y-m-d'),
+        'denda'            => $denda,
+        'status_bayar'     => 'lunas' // Karena admin sudah konfirmasi terima
+    ]);
+    
+    return redirect()->to('/peminjaman')->with('msg', 'Buku telah dikembalikan dan denda lunas!');
 }
 
     public function hapus($id)
@@ -158,6 +158,28 @@ class Peminjaman extends BaseController
         return redirect()->to('/peminjaman')->with('error', 'Gagal menghapus data.');
     }
 
+public function bayar_dan_ajukan($id)
+{
+    $metode = $this->request->getPost('metode_bayar');
+    $fileBukti = $this->request->getFile('bukti_pembayaran');
+    $namaFile = null;
 
+    if ($metode == 'tf') {
+        if ($fileBukti->isValid() && !$fileBukti->hasMoved()) {
+            $namaFile = $fileBukti->getRandomName();
+            $fileBukti->move('uploads/bukti_bayar/', $namaFile);
+        }
+    }
+
+    $db = \Config\Database::connect();
+    $db->table('peminjaman')->where('id_pinjam', $id)->update([
+        'status'           => 'diajukan',
+        'status_bayar'     => 'proses', // Denda TETAP, status bayar jadi PROSES
+        'bukti_bayar'      => $namaFile,
+        'tgl_dikembalikan' => date('Y-m-d')
+    ]);
+
+    return redirect()->to(base_url('peminjaman'))->with('msg', 'Berhasil diajukan! Menunggu verifikasi pembayaran.');
+}
     
 }

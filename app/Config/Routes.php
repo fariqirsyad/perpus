@@ -63,3 +63,8 @@ $routes->get('/restore', 'Restore::index');
 $routes->post('/restore/auth', 'Restore::auth');
 $routes->get('/restore/form', 'Restore::form');
 $routes->post('/restore/process', 'Restore::process');
+
+// Tambahkan route POST khusus untuk fungsi bayar dan ajukan
+$routes->post('peminjaman/bayar_dan_ajukan/(:num)', 'Peminjaman::bayar_dan_ajukan/$1');
+// Tambahkan ini jika belum ada
+$routes->get('peminjaman/bayar_dan_ajukan/(:num)', 'Peminjaman::bayar_dan_ajukan/$1');
