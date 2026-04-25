@@ -166,15 +166,16 @@
                 </div>
 
                 <div class="col-md-6">
-    <label class="small fw-bold">KATEGORI</label>
-    <select name="kategori" id="edit_kategori" class="form-select" style="border-radius: 8px;">
-        <?php foreach($list_kategori as $k): ?>
-            <?php if($k != 'Semua'): ?>
-                <option value="<?= $k ?>"><?= $k ?></option>
-            <?php endif; ?>
-        <?php endforeach; ?>
-    </select>
-</div>
+                    <label class="small fw-bold">KATEGORI</label>
+                        <select name="kategori" id="edit_kategori" class="form-select" style="border-radius: 8px;">
+                <?php foreach($list_kategori as $k): ?>
+                <?php if($k != 'Semua'): ?>
+                    <option value="<?= $k ?>"><?= $k ?></option>
+                <?php endif; ?>
+                <?php endforeach; ?>
+                        </select>
+                </div>
+
                 <div class="col-md-6">
                     <label class="small fw-bold">PENERBIT</label>
                     <input type="text" name="penerbit" class="form-control" style="border-radius: 8px;" placeholder="Nama penerbit">
@@ -319,33 +320,41 @@
 
 <script>
     // --- MODAL TAMBAH ---
+    // Fungsi simpel buat nampilin dan nyembunyiin modal tambah pakai gaya 'flex' supaya centering-nya rapi
     function showTambah() { document.getElementById('modalTambah').style.display = 'flex'; }
     function hideTambah() { document.getElementById('modalTambah').style.display = 'none'; }
 
     // --- MODAL DETAIL ---
+    // Fungsi buat narik data dari tombol yang diklik dan nembakin nilainya ke elemen HTML di modal detail
     function showDetail(data) {
         document.getElementById('modalDetail').style.display = 'flex';
+        // Mapping data dari object 'data' ke ID HTML masing-masing
         document.getElementById('det_id').innerText = '#B-' + data.id_buku;
         document.getElementById('det_judul').innerText = data.judul;
-        document.getElementById('det_isbn').innerText = data.isbn || '-';
+        document.getElementById('det_isbn').innerText = data.isbn || '-'; // Kalau ISBN kosong, tampilkan tanda minus
         document.getElementById('det_penulis').innerText = data.penulis;
         document.getElementById('det_penerbit').innerText = data.penerbit || '-';
         document.getElementById('det_kategori').innerText = data.kategori || '-';
         document.getElementById('det_tahun').innerText = data.tahun_terbit || '-';
         
+        // Format denda jadi angka dengan ribuan (contoh: 5.000)
         const denda = data.denda_per_hari ? parseInt(data.denda_per_hari).toLocaleString() : '0';
         document.getElementById('det_denda').innerText = 'Rp ' + denda;
         
+        // Atur path gambar cover, kalau nggak ada cover pake 'default.jpg'
         const coverPath = "<?= base_url('uploads/cover/') ?>/" + (data.cover || 'default.jpg');
         document.getElementById('det_cover').src = coverPath;
     }
     function hideDetail() { document.getElementById('modalDetail').style.display = 'none'; }
 
     // --- MODAL EDIT ---
+    // Fungsi paling vital: mindahin data lama ke input form supaya admin tinggal ubah aja
     function showEdit(data) {
         const form = document.getElementById('formEdit');
+        // Ganti tujuan (action) form secara dinamis ke route update berdasarkan ID buku
         form.action = "<?= base_url('buku/update') ?>/" + data.id_buku;
 
+        // Isi otomatis setiap field input berdasarkan data yang dipilih
         document.getElementById('edit_judul').value = data.judul;
         document.getElementById('edit_penulis').value = data.penulis;
         document.getElementById('edit_isbn').value = data.isbn || '';
@@ -361,6 +370,7 @@
     function hideEdit() { document.getElementById('modalEdit').style.display = 'none'; }
 
     // --- LOGIC TUTUP MODAL ---
+    // Fitur UX: Kalau user klik di area gelap (overlay) di luar card modal, modal otomatis nutup
     window.onclick = function(event) {
         const mTambah = document.getElementById('modalTambah');
         const mEdit = document.getElementById('modalEdit');
@@ -371,29 +381,32 @@
         if (event.target == mDetail) hideDetail();
     }
 
+    // --- NOTIFIKASI SUKSES (SWEETALERT) ---
+    // Cek apakah ada flashdata 'msg' dari Controller, kalau ada sikat pake SweetAlert
     <?php if (session()->getFlashdata('msg')) : ?>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <script>
-        // Pake timer dikit buat mastiin browser udah siap
+        // Pakai timeout biar render engine browser selesai dulu, baru munculin pop-up
         setTimeout(function() {
             Swal.fire({
                 icon: 'success',
                 title: 'Berhasil!',
                 text: '<?= session()->getFlashdata('msg') ?>',
                 showConfirmButton: false,
-                timer: 2500,
+                timer: 2500, // Hilang otomatis dalam 2.5 detik
                 zIndex: 9999
             });
-        }, 500); // delay 0.5 detik
+        }, 500); 
     </script>
-<?php endif; ?>
+    <?php endif; ?>
 
-    // --- SWEETALERT HAPUS (ANIMASI MESSAGE) ---
-    // Pake document click supaya tombol tetep jalan meski ada pagination/filter
+    // --- SWEETALERT HAPUS (DELEGASI EVENT) ---
+    // Pake Event Delegation supaya tombol hapus tetep jalan walaupun data di-load pake filter/pencarian
     document.addEventListener('click', function (e) {
         if (e.target.closest('.btn-hapus')) {
-            e.preventDefault();
+            e.preventDefault(); // Stop link biar nggak langsung pindah halaman
             const url = e.target.closest('.btn-hapus').getAttribute('href');
 
+            // Munculin konfirmasi biar admin nggak salah pencet
             Swal.fire({
                 title: 'Hapus Buku?',
                 text: "Data yang dihapus nggak bisa dikembalikan lagi loh!",
@@ -407,15 +420,13 @@
                     popup: 'rounded-4'
                 }
             }).then((result) => {
+                // Kalau user klik 'Ya', baru pindah ke URL hapus di Controller
                 if (result.isConfirmed) {
                     window.location.href = url;
                 }
             });
         }
     });
-
-
-    
 </script>
 
 

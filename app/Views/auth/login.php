@@ -10,10 +10,12 @@
     <link href="<?= base_url('assets/bootstrap-icons-1.13.1/bootstrap-icons.css') ?>" rel="stylesheet">
     
     <style>
+        /* Desain Background dengan gradasi warna biru-abu modern */
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             font-family: 'Inter', sans-serif;
         }
+        /* Card Login dibuat melengkung halus dan tanpa border */
         .login-card {
             border: none;
             border-radius: 25px;
@@ -29,16 +31,19 @@
             color: #2d3436;
             letter-spacing: -1px;
         }
+        /* Custom input field agar lebih elegan */
         .form-control {
             border-radius: 12px;
             padding: 12px 15px;
             border: 1px solid #e0e0e0;
             background-color: #fcfcfc;
         }
+        /* Efek fokus saat input diklik (Glow warna Teal) */
         .form-control:focus {
             box-shadow: 0 0 0 4px rgba(0, 128, 128, 0.1);
             border-color: #008080;
         }
+        /* Tombol login dengan warna gelap dan efek hover melayang */
         .btn-login {
             background: #2d3436;
             color: white;
@@ -52,6 +57,7 @@
             transform: translateY(-2px);
             color: white;
         }
+        /* Desain Logo di atas tulisan login */
         .brand-logo {
             width: 60px;
             height: 60px;
@@ -91,9 +97,7 @@
                 <?php endif; ?>
 
                 <form action="<?= base_url('/proses-login') ?>" method="post">
-                    <?= csrf_field() ?>
-
-                    <div class="mb-3">
+                    <?= csrf_field() ?> <div class="mb-3">
                         <label class="form-label small fw-bold text-muted">USERNAME</label>
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px;">
@@ -120,28 +124,25 @@
                     </button>
 
                 </form>
-<div class="position-absolute top-0 end-0 p-3">
-    <a href="<?= base_url('restore') ?>" class="btn btn-white shadow-sm border-0 d-flex align-items-center gap-2" 
-       style="border-radius: 12px; font-size: 11px; font-weight: 600; color: #dc3545; background: white;">
-        <i class="bi bi-arrow-counterclockwise"></i> RESTORE DB
-    </a>
-</div>
 
-<div class="text-center mt-4">
-    <hr class="my-3 opacity-25" style="border-top: 1px solid #dee2e6;">
-    <p class="mb-0">
-        <span class="text-muted small">Belum punya akun?</span>
-        <a href="<?= base_url('users/create') ?>" class="text-decoration-none small fw-bold ms-1" style="color: #0891b2;">Daftar Sekarang</a>
-    </p>
-</div>
+                <div class="position-absolute top-0 end-0 p-3">
+                    <a href="<?= base_url('restore') ?>" class="btn btn-white shadow-sm border-0 d-flex align-items-center gap-2" 
+                       style="border-radius: 12px; font-size: 11px; font-weight: 600; color: #dc3545; background: white;">
+                         <i class="bi bi-arrow-counterclockwise"></i> RESTORE DB
+                    </a>
+                </div>
 
-
+                <div class="text-center mt-4">
+                    <hr class="my-3 opacity-25" style="border-top: 1px solid #dee2e6;">
+                    <p class="mb-0">
+                        <span class="text-muted small">Belum punya akun?</span>
+                        <a href="<?= base_url('users/create') ?>" class="text-decoration-none small fw-bold ms-1" style="color: #0891b2;">Daftar Sekarang</a>
+                    </p>
+                </div>
                  
             </div>
         </div>
     </div>
-
-    
 
     <script src="<?= base_url('assets/js/bootstrap.bundle.min.js') ?>"></script>
 </body>

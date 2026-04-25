@@ -2,44 +2,46 @@
 
 namespace App\Controllers;
 
+// Mengimport core class dari CodeIgniter untuk menangani Controller, Request, Response, dan Logging
 use CodeIgniter\Controller;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * BaseController provides a convenient place for loading components
- * and performing functions that are needed by all your controllers.
+ * BaseController menyediakan tempat yang nyaman untuk memuat komponen
+ * dan menjalankan fungsi yang dibutuhkan oleh semua controller Anda.
  *
- * Extend this class in any new controllers:
- * ```
- *     class Home extends BaseController
- * ```
- *
- * For security, be sure to declare any new methods as protected or private.
+ * Semua controller baru yang lu bikin harus extend ke class ini, contoh:
+ * class Home extends BaseController
  */
 abstract class BaseController extends Controller
 {
     /**
-     * Be sure to declare properties for any property fetch you initialized.
-     * The creation of dynamic property is deprecated in PHP 8.2.
+     * Properti untuk menyimpan instance dari objek atau library.
+     * Di PHP 8.2 ke atas, kita wajib mendeklarasikan properti secara eksplisit
+     * karena pembuatan properti dinamis sudah tidak diperbolehkan (deprecated).
      */
-
-    // protected $session;
+    
+    // Contoh: protected $session; // Buka komen ini jika ingin menggunakan session di semua controller
 
     /**
-     * @return void
+     * Method initController dijalankan otomatis oleh sistem saat controller dipanggil.
+     * Ini seperti 'constructor' khusus untuk controller di CodeIgniter 4.
+     * * @return void
      */
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        // Load here all helpers you want to be available in your controllers that extend BaseController.
-        // Caution: Do not put the this below the parent::initController() call below.
-        // $this->helpers = ['form', 'url'];
+        // Tempat untuk memuat helper yang lu ingin tersedia di SEMUA controller.
+        // Letakkan di atas parent::initController() agar helper siap sebelum sistem berjalan.
+        // Contoh: $this->helpers = ['form', 'url', 'auth_helper'];
 
-        // Caution: Do not edit this line.
+        // Menjalankan inisialisasi controller dari class induk (CodeIgniter\Controller).
+        // Jangan hapus baris ini karena ini inti dari sistem controllernya.
         parent::initController($request, $response, $logger);
 
-        // Preload any models, libraries, etc, here.
-        // $this->session = service('session');
+        // Tempat untuk preload model, library, atau service secara global.
+        // Contoh: $this->session = service('session'); 
+        // Jadi lu nggak perlu panggil session() lagi di tiap file controller.
     }
 }

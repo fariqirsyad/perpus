@@ -1,152 +1,156 @@
 <?php
 
-// Namespace controller (menentukan lokasi file dalam struktur CI4)
+// Namespace controller: menentukan lokasi file agar bisa dipanggil oleh Autoloader CI4
 namespace App\Controllers;
 
-// Menggunakan model UsersModel untuk interaksi database
+// Mengimport model UsersModel agar bisa berinteraksi dengan tabel 'users' di database
 use App\Models\UsersModel;
 
-// Class Users mewarisi BaseController (class utama di CI4)
+// Class Users yang merupakan turunan dari BaseController
 class Users extends BaseController
 {
-    // Properti untuk menampung instance model
+    // Properti dilindungi untuk menyimpan instance model agar bisa diakses di seluruh method class ini
     protected $users;
 
-    // Constructor: dijalankan saat controller dipanggil
+    // Constructor: fungsi yang otomatis jalan pertama kali saat class diinisialisasi
     public function __construct()
     {
-        // Inisialisasi model UsersModel
+        // Mengisi properti $users dengan instance baru dari UsersModel
         $this->users = new UsersModel();
     }
 
-    // Menampilkan halaman form tambah user
+    // Method untuk menampilkan halaman form tambah user baru
     public function create()
     {
-        // Memanggil view users/create.php
+        // Mengembalikan tampilan (view) yang terletak di folder /app/Views/users/create.php
         return view('users/create');
     }
 
-    // Menyimpan data user baru
+    // Method untuk memproses penyimpanan data user baru (POST)
     public function store()
     {
         // ================= VALIDASI =================
-        // Mengambil service validation dari CodeIgniter
+        // Memanggil service validation bawaan CodeIgniter 4
         $validation = \Config\Services::validation();
 
-        // Menentukan aturan validasi
+        // Menetapkan aturan pengecekan input form
         $validation->setRules([
-            'nama'     => 'required', // wajib diisi
-            'email'    => 'required|valid_email', // wajib & format email valid
-            'username' => 'required|is_unique[users.username]', // unik di tabel users
-            'password' => 'required|min_length[4]', // minimal 4 karakter
-            'role'     => 'required', // wajib diisi
+            'nama'     => 'required', // Input 'nama' tidak boleh kosong
+            'email'    => 'required|valid_email', // Input 'email' harus format email asli
+            'username' => 'required|is_unique[users.username]', // Username harus unik (belum ada di tabel users)
+            'password' => 'required|min_length[4]', // Password minimal harus 4 karakter
+            'role'     => 'required', // Pilihan role wajib dipilih
         ]);
 
-        // Jika validasi gagal
+        // Jika data yang dikirim tidak memenuhi aturan di atas
         if (!$validation->withRequest($this->request)->run()) {
-            // Kembali ke halaman sebelumnya + tampilkan error
+            // Kembali ke halaman form sebelumnya dengan membawa pesan error
             return redirect()->back()->with('error', implode('<br>', $validation->getErrors()));
         }
 
         // ================= UPLOAD FOTO =================
-        // Mengambil file dari input name="foto"
+        // Menangkap file yang diunggah dari input form name="foto"
         $foto = $this->request->getFile('foto');
 
-        // Default nama foto null
+        // Menyiapkan variabel nama foto dengan nilai awal null (kosong)
         $namaFoto = null;
 
-        // Jika ada file & valid & belum dipindahkan
+        // Cek jika file ada, valid, dan belum pernah dipindahkan sebelumnya
         if ($foto && $foto->isValid() && !$foto->hasMoved()) {
-            // Generate nama random untuk menghindari konflik nama file
+            // Membuat nama file acak yang unik agar tidak bentrok di server
             $namaFoto = $foto->getRandomName();
 
-            // Pindahkan file ke folder public/uploads/users
+            // Memindahkan file foto ke folder fisik: /public/uploads/users/
             $foto->move(FCPATH . 'uploads/users', $namaFoto);
         }
 
         // ================= SIMPAN DATA =================
+        // Menjalankan perintah insert ke database menggunakan model
         $this->users->save([
-            'nama'     => $this->request->getPost('nama'), // ambil dari form
+            'nama'     => $this->request->getPost('nama'), 
             'email'    => $this->request->getPost('email'),
             'username' => $this->request->getPost('username'),
-            // Password di-hash untuk keamanan
+            // Mengamankan password menggunakan algoritma hash bawaan PHP
             'password' => password_hash($this->request->getPost('password'), PASSWORD_DEFAULT),
             'role'     => $this->request->getPost('role'),
-            'foto'     => $namaFoto // simpan nama file foto
+            'foto'     => $namaFoto // Menyimpan nama file foto yang sudah di-generate tadi
         ]);
 
-        // Redirect ke halaman login + pesan sukses
+        // Berpindah ke halaman login dengan pesan sukses (flash message)
         return redirect()->to('/login')->with('success', 'User berhasil ditambahkan!');
     }
 
-    // Menampilkan daftar user (dengan filter & pagination)
-  public function index()
-{
-    // Ambil parameter GET (hanya keyword & role)
-    $keyword = $this->request->getGet('keyword');
-    $role    = $this->request->getGet('role');
+    // Method untuk menampilkan daftar user dengan fitur pencarian dan pembagian halaman
+    public function index()
+    {
+        // Menangkap data pencarian dan filter role dari URL (parameter GET)
+        $keyword = $this->request->getGet('keyword');
+        $role    = $this->request->getGet('role');
 
-    $builder = $this->users;
+        // Menggunakan instance model sebagai query builder
+        $builder = $this->users;
 
-    // Filter Keyword (Nama, Username, Email)
-    if ($keyword) {
-        $builder->groupStart()
-                ->like('nama', $keyword)
-                ->orLike('username', $keyword)
-                ->orLike('email', $keyword)
-                ->groupEnd();
+        // Logic Filter Kata Kunci (mencari di kolom Nama, Username, atau Email)
+        if ($keyword) {
+            $builder->groupStart() // Mulai pengelompokan query WHERE ( ... )
+                    ->like('nama', $keyword)
+                    ->orLike('username', $keyword)
+                    ->orLike('email', $keyword)
+                    ->groupEnd(); // Akhiri pengelompokan query
+        }
+
+        // Logic Filter Jabatan/Role jika dipilih
+        if ($role) {
+            $builder->where('role', $role);
+        }
+
+        // Mengambil data user, diurutkan dari yang terbaru, dibatasi 10 data per halaman
+        $data['users'] = $builder->orderBy('id', 'DESC')->paginate(10, 'default');
+        // Menyiapkan navigasi halaman (pagination link) untuk ditampilkan di view
+        $data['pager'] = $this->users->pager;
+
+        // Mengirim data ke view index user
+        return view('users/index', $data);
     }
 
-    // Filter Role (Admin, Petugas, Anggota)
-    if ($role) {
-        $builder->where('role', $role);
-    }
-
-    // Ambil data dengan pagination
-    $data['users'] = $builder->orderBy('id', 'DESC')->paginate(10, 'default');
-    $data['pager'] = $this->users->pager;
-
-    return view('users/index', $data);
-}
-
-    // Menampilkan form edit user
+    // Method untuk menampilkan form edit user tertentu berdasarkan ID
     public function edit($id)
     {
-        // Ambil data user berdasarkan id
+        // Mengambil satu data user dari tabel berdasarkan Primary Key-nya
         $data['user'] = $this->users->find($id);
 
-        // Tampilkan view edit
+        // Menampilkan view edit dengan membawa data user tersebut
         return view('users/edit', $data);
     }
 
-    // Update data user
+    // Method untuk memproses pembaruan data user (POST)
     public function update($id)
     {
-        // Ambil data user lama
+        // Mengambil data user yang lama dari database
         $user = $this->users->find($id);
 
-        // Ambil file foto baru
+        // Menangkap file foto baru jika ada yang diupload
         $fotoBaru = $this->request->getFile('foto');
 
-        // Default pakai foto lama
+        // Default: tetap gunakan nama foto yang lama jika tidak ada upload baru
         $namaFoto = $user['foto'];
 
-        // Jika user upload foto baru
+        // Cek jika user mengunggah foto baru yang valid
         if ($fotoBaru && $fotoBaru->isValid() && $fotoBaru->getName() != '') {
 
-            // Hapus foto lama jika ada di folder
+            // Menghapus file foto lama dari folder server agar tidak menumpuk (sampah file)
             if (!empty($user['foto']) && file_exists(FCPATH . 'uploads/users/' . $user['foto'])) {
                 unlink(FCPATH . 'uploads/users/' . $user['foto']);
             }
 
-            // Generate nama baru
+            // Generate nama file unik untuk foto yang baru
             $namaFoto = $fotoBaru->getRandomName();
 
-            // Simpan file baru
+            // Pindahkan file foto baru ke folder penyimpanan
             $fotoBaru->move(FCPATH . 'uploads/users', $namaFoto);
         }
 
-        // Data yang akan diupdate
+        // Menyiapkan array data yang akan diperbarui
         $data = [
             'nama'     => $this->request->getPost('nama'),
             'email'    => $this->request->getPost('email'),
@@ -155,101 +159,104 @@ class Users extends BaseController
             'foto'     => $namaFoto
         ];
 
-        // Jika password diisi → update password
+        // Jika kolom password di form diisi, maka update password (hash)
+        // Jika kosong, password lama di database tetap terjaga
         if ($this->request->getPost('password') != "") {
             $data['password'] = password_hash($this->request->getPost('password'), PASSWORD_DEFAULT);
         }
 
-        // Jalankan update ke database
+        // Menjalankan perintah update di database berdasarkan ID user
         $this->users->update($id, $data);
 
-        // Redirect dengan pesan sukses
+        // Kembali ke daftar user dengan pesan sukses
         return redirect()->to('/users')->with('success', 'Data user berhasil diupdate!');
     }
 
-    // Menghapus user
+    // Method untuk menghapus user dari sistem
     public function delete($id)
     {
-        // Ambil data user
+        // Ambil data user terlebih dahulu untuk pengecekan file
         $user = $this->users->find($id);
 
-        // Hapus foto jika ada
+        // Hapus file foto dari folder server jika user tersebut memiliki foto
         if ($user['foto'] && file_exists(FCPATH . 'uploads/users/' . $user['foto'])) {
             unlink(FCPATH . 'uploads/users/' . $user['foto']);
         }
 
-        // Hapus data user di database
+        // Menghapus baris data user dari tabel database
         $this->users->delete($id);
 
-        // Redirect dengan pesan sukses
+        // Redirect kembali ke daftar user dengan notifikasi sukses
         return redirect()->to('/users')->with('success', 'User berhasil dihapus!');
     }
 
     // ================= DETAIL USER =================
+    // Method untuk melihat profil lengkap seorang user
     public function detail($id)
     {
-        // Ambil data user
+        // Cari data user berdasarkan ID
         $user = $this->users->find($id);
 
-        // Jika tidak ditemukan
+        // Jika data tidak ditemukan di database
         if (!$user) {
             return redirect()->to('/users')->with('error', 'Data tidak ditemukan');
         }
 
-        // Tampilkan detail
+        // Menampilkan view detail profil
         return view('users/detail', ['user' => $user]);
     }
 
     // ================= PRINT DATA =================
+    // Method untuk mencetak laporan daftar user ke kertas/PDF
     public function print()
     {
-        // Ambil filter
+        // Ambil filter yang sedang aktif agar data yang dicetak sesuai dengan yang difilter
         $keyword = $this->request->getGet('keyword');
         $role = $this->request->getGet('role');
 
-        // Builder query
         $builder = $this->users;
 
-        // Filter keyword
+        // Terapkan filter yang sama dengan halaman index
         if ($keyword) {
             $builder = $builder->like('nama', $keyword);
         }
 
-        // Filter role
         if ($role) {
             $builder = $builder->where('role', $role);
         }
 
-        // Ambil semua data (tanpa pagination)
+        // Ambil seluruh data hasil filter tanpa batasan halaman (pagination)
         $data['users'] = $builder->findAll();
 
-        // Tampilkan view print
+        // Menampilkan view khusus cetak yang biasanya berisi window.print() di Javascript
         return view('users/print', $data);
     }
 
     // ================= KIRIM WHATSAPP =================
+    // Method untuk mengirim detail data user melalui WhatsApp API
     public function wa($id)
     {
-        // Ambil data user
+        // Cari data user
         $user = $this->users->find($id);
 
-        // Jika tidak ada
+        // Jika user tidak ada
         if (!$user) {
             return redirect()->back()->with('error', 'Data tidak ditemukan');
         }
 
         // ================= FORMAT PESAN =================
+        // Menyusun teks pesan yang akan dikirim (menggunakan \n untuk baris baru)
         $pesan = "DATA USER\n\n";
         $pesan .= "ID: " . $user['id'] . "\n";
         $pesan .= "Nama: " . $user['nama'] . "\n";
         $pesan .= "Email: " . $user['email'] . "\n";
         $pesan .= "Username: " . $user['username'] . "\n";
-        $pesan .= "Role: " . ucfirst($user['role']) . "\n";
+        $pesan .= "Role: " . ucfirst($user['role']) . "\n"; // ucfirst: mengubah huruf pertama jadi kapital
 
-        // Encode agar aman di URL
+        // Mengubah teks pesan menjadi format yang aman untuk URL browser (urlencode)
         $url = "https://wa.me/6285175017991?text=" . urlencode($pesan);
 
-        // Redirect ke WhatsApp
+        // Mengalihkan (redirect) browser langsung ke link WhatsApp tersebut
         return redirect()->to($url);
     }
 }

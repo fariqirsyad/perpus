@@ -150,11 +150,53 @@
     </div>
 </div>
 
-<div class="mt-4 d-flex justify-content-center">
-    <div class="pagination-wrapper">
+<div class="mt-5 d-flex justify-content-center">
+    <div class="pagination-wrapper shadow-sm p-2 bg-white" style="border-radius: 50px;">
         <?= $pager->links() ?>
     </div>
 </div>
+
+<style>
+    /* Mengincar tag <ul> dan <li> yang dihasilkan oleh $pager->links() */
+    .pagination-wrapper ul {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        list-style: none;
+        gap: 5px;
+    }
+
+    .pagination-wrapper li a, 
+    .pagination-wrapper li span {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 50px;
+        color: #008080; /* Warna teal biar sama kayak badge */
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    /* Efek pas kursor di atas angka */
+    .pagination-wrapper li a:hover {
+        background-color: #e6f2f2;
+        color: #006666;
+        transform: translateY(-2px);
+    }
+
+    /* Gaya untuk halaman yang lagi aktif */
+    .pagination-wrapper li.active span,
+    .pagination-wrapper li.active a {
+        background-color: #008080;
+        color: white !important;
+    }
+
+    /* Styling untuk tombol 'Next' & 'Previous' kalau ada */
+    .pagination-wrapper li:first-child a, 
+    .pagination-wrapper li:last-child a {
+        color: #6c757d;
+    }
+</style>
 
 <style>
     .profile-img {
