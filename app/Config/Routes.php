@@ -12,10 +12,9 @@ $authFilter = ['filter' => 'auth'];
 
 // Filter 'role' membatasi halaman berdasarkan jabatan user di database
 $admin     = ['filter' => 'role:admin'];
-$petugas   = ['filter' => 'role:petugas'];
 $anggota   = ['filter' => 'role:anggota'];
-$intRole   = ['filter' => 'role:admin, petugas']; // Khusus staff (admin & petugas)
-$allRole   = ['filter' => 'role:admin, petugas, anggota']; // Bisa diakses semua yang sudah login
+$intRole   = ['filter' => 'role:admin']; 
+$allRole   = ['filter' => 'role:admin, anggota']; // Bisa diakses semua yang sudah login
 
 // --- GROUP AUTHENTICATION (MASUK & KELUAR) ---
 $routes->get('/login', 'Auth::login');             // Menampilkan halaman login
@@ -30,7 +29,7 @@ $routes->get('/dashboard', 'Home::index', $authFilter); // Alias halaman dashboa
 $routes->get('/users/create', 'Users::create'); // Form pendaftaran user baru (biasanya buat registrasi)
 $routes->post('/users/store', 'Users::store');   // Proses simpan data user baru ke DB
 
-$routes->get('/users', 'Users::index', $intRole); // Daftar user (Hanya Admin/Petugas yang bisa lihat)
+$routes->get('/users', 'Users::index', $intRole); // Daftar user (Hanya Admin yang bisa lihat)
 $routes->get('/users/edit/(:num)', 'Users::edit/$1', $allRole); // Form edit user berdasarkan ID
 $routes->post('/users/update/(:num)', 'Users::update/$1', $allRole); // Proses update data user
 $routes->get('/users/delete/(:num)', 'Users::delete/$1', $allRole); // Proses hapus user

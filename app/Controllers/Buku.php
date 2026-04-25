@@ -12,52 +12,50 @@ class Buku extends BaseController
 
     // Constructor: Fungsi yang otomatis jalan pertama kali saat class dipanggil
     public function __construct() {
-        // Inisialisasi model buku agar bisa dipakai di semua method dalam class ini
-        $this->bukuModel = new BukuModel();
+    // Inisialisasi model buku agar bisa dipakai di semua method dalam class ini
+    $this->bukuModel = new BukuModel();
+}
+
+// Method untuk menampilkan daftar buku dengan fitur pencarian & filter
+public function index()
+{
+    // 1. Mengambil data dari parameter URL (?cari=...&kategori=...)
+    $keyword   = $this->request->getGet('cari');
+    $kategori = $this->request->getGet('kategori');
+
+    // 2. Logika Pencarian Teks (Judul, Penulis, atau ISBN)
+    if ($keyword) {
+        // groupStart & groupEnd berfungsi seperti kurung buka-tutup di SQL
+        $this->bukuModel->groupStart()
+                        ->like('judul', $keyword)
+                        ->orLike('penulis', $keyword)
+                        ->orLike('isbn', $keyword)
+                        ->groupEnd();
     }
 
-    // Method untuk menampilkan daftar buku dengan fitur pencarian & filter
-    public function index()
-    {
-        // 1. Mengambil data dari parameter URL (?cari=...&kategori=...)
-        $keyword   = $this->request->getGet('cari');
-        $kategori = $this->request->getGet('kategori');
-
-        // 2. Memanggil Query Builder dari model
-        $builder = $this->bukuModel->builder();
-
-        // 3. Logika Pencarian Teks (Judul, Penulis, atau ISBN)
-        if ($keyword) {
-            // groupStart & groupEnd berfungsi seperti kurung buka-tutup di SQL (WHERE (...) AND ...)
-            $builder->groupStart()
-                    ->like('judul', $keyword)
-                    ->orLike('penulis', $keyword)
-                    ->orLike('isbn', $keyword)
-                    ->groupEnd();
-        }
-
-        // 4. Logika Filter Kategori
-        // Jika kategori dipilih dan nilainya bukan "Semua", tambahkan filter WHERE
-        if ($kategori && $kategori != 'Semua') {
-            $builder->where('kategori', $kategori);
-        }
-
-        // 5. Menyiapkan data untuk dikirim ke view
-        $data = [
-            'title'         => 'Daftar Buku',
-            'list_kategori' => [ // Daftar pilihan kategori untuk dropdown di view
-                'Semua', 'Umum', 'Agama', 'Sains & Teknologi', 
-                'Sosial & Sejarah', 'Bahasa & Sastra', 'Seni & Rekreasi'
-            ],
-            // Eksekusi query: urutkan dari yang terbaru (DESC) lalu ambil hasilnya dalam bentuk array
-            'buku'          => $builder->orderBy('id_buku', 'DESC')->get()->getResultArray(), 
-            'keyword'       => $keyword,
-            'kategori_now'  => $kategori // Dikirim balik agar dropdown tetap menampilkan pilihan user
-        ];
-
-        // Memanggil halaman view index buku dengan membawa data di atas
-        return view('buku/index', $data);
+    // 3. Logika Filter Kategori
+    if ($kategori && $kategori != 'Semua') {
+        $this->bukuModel->where('kategori', $kategori);
     }
+
+    // 4. Menyiapkan data untuk dikirim ke view
+    $data = [
+        'title'         => 'Daftar Buku',
+        'list_kategori' => [ 
+            'Semua', 'Umum', 'Agama', 'Sains & Teknologi', 
+            'Sosial & Sejarah', 'Bahasa & Sastra', 'Seni & Rekreasi'
+        ],
+        // [BARU] Pakai paginate() alih-alih get()->getResultArray()
+        'buku'          => $this->bukuModel->orderBy('id_buku', 'DESC')->paginate(10, 'buku_list'), 
+        // [BARU] Kirim objek pager ke view
+        'pager'         => $this->bukuModel->pager,
+        'keyword'       => $keyword,
+        'kategori_now'  => $kategori 
+    ];
+
+    // Memanggil halaman view index buku dengan membawa data di atas
+    return view('buku/index', $data);
+}
 
     // Method untuk menyimpan data buku baru
     public function simpan()

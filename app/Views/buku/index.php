@@ -429,6 +429,34 @@
     });
 </script>
 
+<div class="mt-5 d-flex justify-content-center">
+    <div class="pagination-wrapper shadow-sm p-2 bg-white" style="border-radius: 50px;">
+        <?= $pager->links('buku_list', 'default_full') ?>
+    </div>
+</div>
 
+<style>
+    /* CSS ini biar tampilannya Teal dan Bulat-bulat kayak badge di tabel lu */
+    .pagination-wrapper ul { 
+        margin: 0; padding: 0; display: flex; list-style: none; gap: 5px; 
+    }
+    .pagination-wrapper li a, .pagination-wrapper li span {
+        display: inline-block;
+        padding: 8px 16px; 
+        border-radius: 50px; 
+        color: #008080; /* Warna Teal biar matching */
+        text-decoration: none; 
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    .pagination-wrapper li.active span { 
+        background-color: #008080; 
+        color: white !important; 
+    }
+    .pagination-wrapper li a:hover {
+        background-color: #e6f2f2;
+        transform: translateY(-2px);
+    }
+</style>
 
 <?= $this->endSection() ?>

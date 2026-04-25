@@ -138,7 +138,7 @@
                 <h5 class="fw-bold mb-4"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Aksi Cepat</h5>
                 
                 <div class="d-grid gap-3">
-                    <?php if (session('role') == 'admin' || session('role') == 'petugas') : ?>
+                    <?php if (session('role') == 'admin') : ?>
                         <button type="button" class="btn btn-light border-0 py-3 text-start px-3 shadow-none" style="border-radius: 15px;" data-bs-toggle="modal" data-bs-target="#modalTambahBuku">
                             <i class="bi bi-plus-circle-fill text-primary me-2"></i> Tambah Koleksi Buku
                         </button>

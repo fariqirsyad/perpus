@@ -20,7 +20,7 @@ class UsersModel extends Model
         'email',    // Alamat email user
         'username', // Username untuk login
         'password', // Password (yang sudah di-hash)
-        'role',     // Jabatan (admin, petugas, atau anggota)
+        'role',     // Jabatan (admin atau anggota)
         'foto',     // Nama file foto profil
         'status'    // Status akun (misal: aktif/tidak aktif)
     ];

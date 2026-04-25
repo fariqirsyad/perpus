@@ -25,7 +25,6 @@
                 <?php 
                     $badgeClass = 'bg-light text-dark';
                     if($user['role'] == 'admin') $badgeClass = 'bg-danger text-white';
-                    if($user['role'] == 'petugas') $badgeClass = 'bg-info text-white';
                     if($user['role'] == 'anggota') $badgeClass = 'bg-success text-white';
                 ?>
                 <span class="badge <?= $badgeClass ?> px-3 py-2" style="border-radius: 10px; font-size: 14px;">

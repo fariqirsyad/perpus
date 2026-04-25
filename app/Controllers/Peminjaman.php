@@ -9,7 +9,7 @@ use App\Models\BukuModel;
 
 class Peminjaman extends BaseController
 {
-    // --- FITUR UMUM (Dapat diakses Admin, Petugas, maupun Anggota) ---
+    // --- FITUR UMUM ---
 
     public function index()
 {
@@ -147,6 +147,7 @@ class Peminjaman extends BaseController
     }
 
     // --- FITUR KONFIRMASI ADMIN (Saat Admin menerima fisik buku) ---
+    // --- FITUR KONFIRMASI ADMIN (Saat Admin menerima fisik buku) ---
     public function konfirmasi_kembali($id) {
         $db = \Config\Database::connect();
         
@@ -157,26 +158,32 @@ class Peminjaman extends BaseController
             return redirect()->back()->with('error', 'Data tidak ditemukan.');
         }
 
+        // Simpan id_buku biar kita tau buku mana yang mau ditambah stoknya
+        $id_buku = $dataLama['id_buku'];
+
         // Logic hitung denda: bandingkan tanggal kembali dengan hari ini
         $tgl_kembali = new \DateTime($dataLama['tgl_kembali']);
         $tgl_sekarang = new \DateTime(date('Y-m-d'));
         $denda = 0;
 
-        // Jika hari ini sudah lewat dari tanggal seharusnya kembali
         if ($tgl_sekarang > $tgl_kembali) {
             $selisih = $tgl_sekarang->diff($tgl_kembali);
-            $denda = $selisih->days * 5000; // Hitung hari telat x tarif denda
+            $denda = $selisih->days * 5000; 
         }
 
-        // Update database: status 'kembali', catat denda, dan set bayar lunas
+        // 1. Update tabel peminjaman
         $db->table('peminjaman')->where('id_pinjam', $id)->update([
             'status'           => 'kembali',
             'tgl_dikembalikan' => date('Y-m-d'),
             'denda'            => $denda,
             'status_bayar'     => 'lunas' 
         ]);
+
+        // 2. --- INI DIA TAMBAHANNYA: BALIKIN STOK BUKU (+1) ---
+        // Mirip sama logika di pinjam_mandiri tapi ini pake PLUS (+)
+        $db->query("UPDATE buku SET stok = stok + 1 WHERE id_buku = ?", [$id_buku]);
         
-        return redirect()->to('/peminjaman')->with('msg', 'Buku telah dikembalikan dan denda lunas!');
+        return redirect()->to('/peminjaman')->with('msg', 'Buku telah dikembalikan!');
     }
 
     // Menghapus data transaksi peminjaman
@@ -220,6 +227,6 @@ class Peminjaman extends BaseController
             'tgl_dikembalikan' => date('Y-m-d')
         ]);
 
-        return redirect()->to(base_url('peminjaman'))->with('msg', 'Berhasil diajukan! Menunggu verifikasi pembayaran.');
+        return redirect()->to(base_url('peminjaman'))->with('msg', 'Berhasil diajukan!');
     }
 }

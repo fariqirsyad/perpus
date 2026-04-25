@@ -33,7 +33,6 @@
                 <select name="role" class="form-select" style="border-radius: 10px;">
                     <option value="">Role</option>
                     <option value="admin" <?= (request()->getGet('role') == 'admin') ? 'selected' : '' ?>>Admin</option>
-                    <option value="petugas" <?= (request()->getGet('role') == 'petugas') ? 'selected' : '' ?>>Petugas</option>
                     <option value="anggota" <?= (request()->getGet('role') == 'anggota') ? 'selected' : '' ?>>Anggota</option>
                 </select>
             </div>
@@ -106,7 +105,6 @@
                                     <?php 
                                         $badgeClass = 'bg-light text-dark';
                                         if($u['role'] == 'admin') $badgeClass = 'bg-danger text-white';
-                                        if($u['role'] == 'petugas') $badgeClass = 'bg-info text-white';
                                         if($u['role'] == 'anggota') $badgeClass = 'bg-success text-white';
                                     ?>
                                     <span class="badge <?= $badgeClass ?>" style="border-radius: 8px; padding: 6px 12px; font-weight: 500;">
@@ -150,53 +148,9 @@
     </div>
 </div>
 
-<div class="mt-5 d-flex justify-content-center">
-    <div class="pagination-wrapper shadow-sm p-2 bg-white" style="border-radius: 50px;">
-        <?= $pager->links() ?>
-    </div>
-</div>
 
-<style>
-    /* Mengincar tag <ul> dan <li> yang dihasilkan oleh $pager->links() */
-    .pagination-wrapper ul {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        list-style: none;
-        gap: 5px;
-    }
 
-    .pagination-wrapper li a, 
-    .pagination-wrapper li span {
-        display: inline-block;
-        padding: 8px 16px;
-        border-radius: 50px;
-        color: #008080; /* Warna teal biar sama kayak badge */
-        text-decoration: none;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
 
-    /* Efek pas kursor di atas angka */
-    .pagination-wrapper li a:hover {
-        background-color: #e6f2f2;
-        color: #006666;
-        transform: translateY(-2px);
-    }
-
-    /* Gaya untuk halaman yang lagi aktif */
-    .pagination-wrapper li.active span,
-    .pagination-wrapper li.active a {
-        background-color: #008080;
-        color: white !important;
-    }
-
-    /* Styling untuk tombol 'Next' & 'Previous' kalau ada */
-    .pagination-wrapper li:first-child a, 
-    .pagination-wrapper li:last-child a {
-        color: #6c757d;
-    }
-</style>
 
 <style>
     .profile-img {
@@ -271,5 +225,35 @@
         });
     <?php endif; ?>
 </script>
+
+<div class="mt-5 d-flex justify-content-center">
+    <div class="pagination-wrapper shadow-sm p-2 bg-white" style="border-radius: 50px;">
+        <?= $pager->links('buku_list', 'default_full') ?>
+    </div>
+</div>
+
+<style>
+    /* CSS ini biar tampilannya Teal dan Bulat-bulat kayak badge di tabel lu */
+    .pagination-wrapper ul { 
+        margin: 0; padding: 0; display: flex; list-style: none; gap: 5px; 
+    }
+    .pagination-wrapper li a, .pagination-wrapper li span {
+        display: inline-block;
+        padding: 8px 16px; 
+        border-radius: 50px; 
+        color: #008080; /* Warna Teal biar matching */
+        text-decoration: none; 
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    .pagination-wrapper li.active span { 
+        background-color: #008080; 
+        color: white !important; 
+    }
+    .pagination-wrapper li a:hover {
+        background-color: #e6f2f2;
+        transform: translateY(-2px);
+    }
+</style>
 
 <?= $this->endSection() ?>

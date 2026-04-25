@@ -124,53 +124,62 @@ class Users extends BaseController
     }
 
     // Method untuk memproses pembaruan data user (POST)
-    public function update($id)
-    {
-        // Mengambil data user yang lama dari database
-        $user = $this->users->find($id);
+public function update($id)
+{
+    // Mengambil data user yang lama dari database
+    $user = $this->users->find($id);
 
-        // Menangkap file foto baru jika ada yang diupload
-        $fotoBaru = $this->request->getFile('foto');
+    // Menangkap file foto baru jika ada yang diupload
+    $fotoBaru = $this->request->getFile('foto');
 
-        // Default: tetap gunakan nama foto yang lama jika tidak ada upload baru
-        $namaFoto = $user['foto'];
+    // Default: tetap gunakan nama foto yang lama jika tidak ada upload baru
+    $namaFoto = $user['foto'];
 
-        // Cek jika user mengunggah foto baru yang valid
-        if ($fotoBaru && $fotoBaru->isValid() && $fotoBaru->getName() != '') {
+    // Cek jika user mengunggah foto baru yang valid
+    if ($fotoBaru && $fotoBaru->isValid() && !$fotoBaru->hasMoved()) {
 
-            // Menghapus file foto lama dari folder server agar tidak menumpuk (sampah file)
-            if (!empty($user['foto']) && file_exists(FCPATH . 'uploads/users/' . $user['foto'])) {
-                unlink(FCPATH . 'uploads/users/' . $user['foto']);
-            }
-
-            // Generate nama file unik untuk foto yang baru
-            $namaFoto = $fotoBaru->getRandomName();
-
-            // Pindahkan file foto baru ke folder penyimpanan
-            $fotoBaru->move(FCPATH . 'uploads/users', $namaFoto);
+        // Menghapus file foto lama dari folder server agar tidak menumpuk
+        if (!empty($user['foto']) && file_exists(FCPATH . 'uploads/users/' . $user['foto'])) {
+            unlink(FCPATH . 'uploads/users/' . $user['foto']);
         }
 
-        // Menyiapkan array data yang akan diperbarui
-        $data = [
-            'nama'     => $this->request->getPost('nama'),
-            'email'    => $this->request->getPost('email'),
-            'username' => $this->request->getPost('username'),
-            'role'     => $this->request->getPost('role'),
-            'foto'     => $namaFoto
-        ];
+        // Generate nama file unik untuk foto yang baru
+        $namaFoto = $fotoBaru->getRandomName();
 
-        // Jika kolom password di form diisi, maka update password (hash)
-        // Jika kosong, password lama di database tetap terjaga
-        if ($this->request->getPost('password') != "") {
-            $data['password'] = password_hash($this->request->getPost('password'), PASSWORD_DEFAULT);
-        }
-
-        // Menjalankan perintah update di database berdasarkan ID user
-        $this->users->update($id, $data);
-
-        // Kembali ke daftar user dengan pesan sukses
-        return redirect()->to('/users')->with('success', 'Data user berhasil diupdate!');
+        // Pindahkan file foto baru ke folder penyimpanan
+        $fotoBaru->move(FCPATH . 'uploads/users', $namaFoto);
     }
+
+    // Menyiapkan array data yang akan diperbarui
+    $data = [
+        'nama'     => $this->request->getPost('nama'),
+        'email'    => $this->request->getPost('email'),
+        'username' => $this->request->getPost('username'),
+        'role'     => $this->request->getPost('role'),
+        'foto'     => $namaFoto
+    ];
+
+    // Jika kolom password di form diisi, maka update password (hash)
+    if ($this->request->getPost('password') != "") {
+        $data['password'] = password_hash($this->request->getPost('password'), PASSWORD_DEFAULT);
+    }
+
+    // Menjalankan perintah update di database berdasarkan ID user
+    $this->users->update($id, $data);
+
+    // --- LOGIKA UPDATE SESSION (Biar Sidebar Langsung Berubah) ---
+    if (session('id') == $id) {
+        session()->set([
+            'nama' => $data['nama'],
+            'foto' => $data['foto'],
+            // Kita tidak update role di session demi keamanan, 
+            // tapi nama dan foto wajib biar UI langsung seger!
+        ]);
+    }
+
+    // Kembali ke daftar user dengan pesan sukses
+    return redirect()->to('/users')->with('success', 'Data user berhasil diupdate!');
+}
 
     // Method untuk menghapus user dari sistem
     public function delete($id)

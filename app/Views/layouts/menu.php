@@ -12,7 +12,7 @@
             </a>
         </li>
 
-        <?php if (session('role') == 'admin' || session('role') == 'petugas') : ?>
+        <?php if (session('role') == 'admin') : ?>
             <li class="nav-item">
                 <a class="nav-link-teal <?= (url_is('buku*') ? 'active' : '') ?>" href="<?= base_url('buku') ?>">
                     <i class="bi bi-book"></i> <span>Koleksi Buku</span>

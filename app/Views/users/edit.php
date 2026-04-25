@@ -35,11 +35,21 @@
 
                         <div class="col-md-6 mb-3">
                             <label class="form-label small fw-bold text-muted text-uppercase">Hak Akses (Role)</label>
-                            <select name="role" class="form-select" style="border-radius: 10px; padding: 10px;">
+                            <?php 
+                                // Cek apakah yang sedang diedit adalah akun diri sendiri
+                                $isSelf = (session('id') == $user['id']); 
+                            ?>
+                            <select name="role" class="form-select" style="border-radius: 10px; padding: 10px;" <?= $isSelf ? 'disabled' : '' ?>>
                                 <option value="admin" <?= $user['role'] == 'admin' ? 'selected' : '' ?>>Admin</option>
-                                <option value="petugas" <?= $user['role'] == 'petugas' ? 'selected' : '' ?>>Petugas</option>
                                 <option value="anggota" <?= $user['role'] == 'anggota' ? 'selected' : '' ?>>Anggota</option>
                             </select>
+                            
+                            <?php if ($isSelf) : ?>
+                                <input type="hidden" name="role" value="<?= $user['role'] ?>">
+                                <div class="form-text text-danger" style="font-size: 11px;">
+                                    <i class="bi bi-info-circle me-1"></i> Anda tidak dapat mengubah role Anda sendiri.
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -57,7 +67,7 @@
                                 <?php if ($user['foto']): ?>
                                     <img src="<?= base_url('uploads/users/' . $user['foto']) ?>" class="rounded shadow-sm" width="80" height="80" style="object-fit: cover;">
                                 <?php else: ?>
-                                    <div class="bg-secondary text-white rounded d-flex align-items-center justify-content-center shadow-sm" width="80" height="80" style="width: 80px; height: 80px; font-size: 30px;">
+                                    <div class="bg-secondary text-white rounded d-flex align-items-center justify-content-center shadow-sm" style="width: 80px; height: 80px; font-size: 30px;">
                                         <i class="bi bi-person"></i>
                                     </div>
                                 <?php endif; ?>

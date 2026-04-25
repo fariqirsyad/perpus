@@ -143,13 +143,19 @@
                             <td class="text-center pe-4">
                                 <div class="d-flex justify-content-center gap-1">
                                     <?php if (session('role') == 'anggota') : ?>
-                                        <?php if ($t['status'] == 'dipinjam') : ?>
-                                            <?php if ($total_denda > 0) : ?>
-                                                <button onclick="modalBayar(<?= $t['id_pinjam'] ?>, <?= $total_denda ?>)" class="btn btn-sm btn-primary" style="border-radius: 8px; font-size: 11px;">Ajukan</button>
-                                            <?php else : ?>
-                                                <a href="<?= base_url('peminjaman/bayar_dan_ajukan/' . $t['id_pinjam']) ?>" class="btn btn-sm btn-success btn-langsung" style="border-radius: 8px; font-size: 11px;">Kembalikan</a>
-                                            <?php endif; ?>
-                                        <?php endif; ?>
+    <?php if ($t['status'] == 'dipinjam') : ?>
+        <?php if ($total_denda > 0) : ?>
+            <button onclick="modalBayar(<?= $t['id_pinjam'] ?>, <?= $total_denda ?>)" class="btn btn-sm btn-primary" style="border-radius: 8px; font-size: 11px;">Ajukan</button>
+        <?php else : ?>
+            <a href="javascript:void(0)" 
+               onclick="konfirmasiKembali('<?= base_url('peminjaman/bayar_dan_ajukan/' . $t['id_pinjam']) ?>')" 
+               class="btn btn-sm btn-success" 
+               style="border-radius: 8px; font-size: 11px;">
+               Kembalikan
+            </a>
+        <?php endif; ?>
+    <?php endif; ?>
+
 
                                     <?php elseif (session('role') == 'admin') : ?>
                                         <?php if ($t['status'] == 'diajukan') : ?>
@@ -279,6 +285,24 @@
             });
         <?php endif; ?>
     });
+
+    function konfirmasiKembali(url) {
+    Swal.fire({
+        title: 'Yakin ingin mengembalikan?',
+        text: "Buku akan diajukan untuk pengembalian.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#198754', // Warna hijau sukses
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, Kembalikan!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Setelah klik OK, baru dia pindah ke link tujuannya
+            window.location.href = url;
+        }
+    })
+}
 
     document.addEventListener('click', function(e) {
         const btnKonfirmasi = e.target.closest('.btn-konfirmasi');
