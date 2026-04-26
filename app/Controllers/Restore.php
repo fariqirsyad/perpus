@@ -66,7 +66,7 @@ class Restore extends Controller
         }
 
         // --- TAMBAHAN : OTOMATIS MEMBUAT DATABASE JIKA BELUM ADA ---
-        $dbName = 'pustaka'; // Nama database target
+        $dbName = 'perpus'; // Nama database target
 
         // Membuka koneksi MySQL menggunakan native PHP (mysqli)
         // Parameter: localhost, username, password, database (kosong dulu)
