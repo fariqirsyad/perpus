@@ -1,6 +1,8 @@
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <div class="mb-4 d-flex justify-content-between align-items-center">
     <div>
         <h2 class="fw-bold">Kelola Koleksi Buku</h2>
@@ -87,41 +89,40 @@
                                 <div class="small text-muted"><?= $b['kategori'] ?></div>
                             </td>
                             <td class="text-center">
-    <?php 
-        // Logic menentukan warna berdasarkan jumlah stok
-        if ($b['stok'] <= 0) {
-            $warna_stok = 'bg-danger'; // Merah jika habis
-        } elseif ($b['stok'] <= 3) {
-            $warna_stok = 'bg-warning text-dark'; // Kuning jika stok menipis (3 kebawah)
-        } else {
-            $warna_stok = 'bg-success'; // Hijau jika stok aman
-        }
-    ?>
-    <span class="badge <?= $warna_stok ?>" style="border-radius: 8px; padding: 6px 12px;">
-        <?= $b['stok'] ?> Eks
-    </span>
-</td>
-                          <td class="text-center pe-4">
-    <div class="d-flex justify-content-center gap-1">
-        <button type="button" class="btn btn-sm btn-info text-white" 
-                onclick='showDetail(<?= htmlspecialchars(json_encode($b), ENT_QUOTES, "UTF-8") ?>)' 
-                style="border-radius: 8px; background: #22d3ee; border: none;">
-            <i class="bi bi-eye"></i>
-        </button>
+                                <?php 
+                                    if ($b['stok'] <= 0) {
+                                        $warna_stok = 'bg-danger';
+                                    } elseif ($b['stok'] <= 3) {
+                                        $warna_stok = 'bg-warning text-dark';
+                                    } else {
+                                        $warna_stok = 'bg-success';
+                                    }
+                                ?>
+                                <span class="badge <?= $warna_stok ?>" style="border-radius: 8px; padding: 6px 12px;">
+                                    <?= $b['stok'] ?> Eks
+                                </span>
+                            </td>
+                            <td class="text-center pe-4">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <button type="button" class="btn btn-sm btn-info text-white" 
+                                            onclick='showDetail(<?= htmlspecialchars(json_encode($b), ENT_QUOTES, "UTF-8") ?>)' 
+                                            style="border-radius: 8px; background: #22d3ee; border: none;">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
 
-        <button type="button" class="btn btn-sm btn-outline-primary" 
-                onclick='showEdit(<?= htmlspecialchars(json_encode($b), ENT_QUOTES, "UTF-8") ?>)' 
-                style="border-radius: 8px;">
-            <i class="bi bi-pencil-square"></i>
-        </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                            onclick='showEdit(<?= htmlspecialchars(json_encode($b), ENT_QUOTES, "UTF-8") ?>)' 
+                                            style="border-radius: 8px;">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
 
-        <a href="<?= base_url('buku/hapus/'.$b['id_buku']) ?>" 
-           class="btn btn-sm btn-outline-danger btn-hapus" 
-           style="border-radius: 8px;">
-            <i class="bi bi-trash"></i>
-        </a>
-    </div>
-</td>
+                                    <a href="<?= base_url('buku/hapus/'.$b['id_buku']) ?>" 
+                                       class="btn btn-sm btn-outline-danger btn-hapus" 
+                                       style="border-radius: 8px;">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else : ?>
@@ -155,7 +156,6 @@
                     <label class="small fw-bold">JUDUL BUKU</label>
                     <input type="text" name="judul" class="form-control" required style="border-radius: 8px;" placeholder="Contoh: Laskar Pelangi">
                 </div>
-
                 <div class="col-md-6">
                     <label class="small fw-bold">PENULIS</label>
                     <input type="text" name="penulis" class="form-control" required style="border-radius: 8px;" placeholder="Nama penulis">
@@ -164,41 +164,36 @@
                     <label class="small fw-bold">ISBN</label>
                     <input type="text" name="isbn" class="form-control" style="border-radius: 8px;" placeholder="978-xxx-xxx">
                 </div>
-
                 <div class="col-md-6">
                     <label class="small fw-bold">KATEGORI</label>
-                        <select name="kategori" id="edit_kategori" class="form-select" style="border-radius: 8px;">
-                <?php foreach($list_kategori as $k): ?>
-                <?php if($k != 'Semua'): ?>
-                    <option value="<?= $k ?>"><?= $k ?></option>
-                <?php endif; ?>
-                <?php endforeach; ?>
-                        </select>
+                    <select name="kategori" class="form-select" style="border-radius: 8px;">
+                        <?php foreach($list_kategori as $k): ?>
+                            <?php if($k != 'Semua'): ?>
+                                <option value="<?= $k ?>"><?= $k ?></option>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-
                 <div class="col-md-6">
                     <label class="small fw-bold">PENERBIT</label>
                     <input type="text" name="penerbit" class="form-control" style="border-radius: 8px;" placeholder="Nama penerbit">
                 </div>
-
                 <div class="col-12">
                     <label class="small fw-bold">DESKRIPSI BUKU</label>
                     <textarea name="deskripsi" class="form-control" rows="3" style="border-radius: 8px;" placeholder="Masukkan ringkasan atau sinopsis buku..."></textarea>
                 </div>
-
                 <div class="col-md-4">
                     <label class="small fw-bold">TAHUN TERBIT</label>
                     <input type="number" name="tahun_terbit" class="form-control" style="border-radius: 8px;" placeholder="2024">
                 </div>
                 <div class="col-md-4">
                     <label class="small fw-bold">STOK</label>
-                    <input type="number" name="stok" class="form-control" value="1" style="border-radius: 8px;" placeholder="0">
+                    <input type="number" name="stok" class="form-control" value="1" style="border-radius: 8px;">
                 </div>
                 <div class="col-md-4">
                     <label class="small fw-bold">DENDA/HARI</label>
-                    <input type="number" name="denda_per_hari" class="form-control" value="5000" style="border-radius: 8px;" placeholder="5000">
+                    <input type="number" name="denda_per_hari" class="form-control" value="5000" style="border-radius: 8px;">
                 </div>
-
                 <div class="col-12">
                     <label class="small fw-bold">COVER BUKU</label>
                     <input type="file" name="cover" class="form-control" style="border-radius: 8px;">
@@ -218,24 +213,21 @@
             <h4 class="fw-bold mb-0">Edit Data Buku</h4>
             <button type="button" class="btn-close" onclick="hideEdit()"></button>
         </div>
-        
         <form id="formEdit" action="" method="post" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <div class="row g-3">
                 <div class="col-12">
                     <label class="small fw-bold">JUDUL BUKU</label>
-                    <input type="text" id="edit_judul" name="judul" class="form-control" required style="border-radius: 8px;" placeholder="Masukkan judul buku">
+                    <input type="text" id="edit_judul" name="judul" class="form-control" required style="border-radius: 8px;">
                 </div>
-
                 <div class="col-md-6">
                     <label class="small fw-bold">PENULIS</label>
-                    <input type="text" id="edit_penulis" name="penulis" class="form-control" required style="border-radius: 8px;" placeholder="Nama penulis">
+                    <input type="text" id="edit_penulis" name="penulis" class="form-control" required style="border-radius: 8px;">
                 </div>
                 <div class="col-md-6">
                     <label class="small fw-bold">ISBN</label>
-                    <input type="text" id="edit_isbn" name="isbn" class="form-control" style="border-radius: 8px;" placeholder="978-xxx-xxx">
+                    <input type="text" id="edit_isbn" name="isbn" class="form-control" style="border-radius: 8px;">
                 </div>
-
                 <div class="col-md-6">
                     <label class="small fw-bold">KATEGORI</label>
                     <select name="kategori" id="edit_kategori" class="form-select" style="border-radius: 8px;">
@@ -248,33 +240,29 @@
                 </div>
                 <div class="col-md-6">
                     <label class="small fw-bold">PENERBIT</label>
-                    <input type="text" id="edit_penerbit" name="penerbit" class="form-control" style="border-radius: 8px;" placeholder="Nama penerbit">
+                    <input type="text" id="edit_penerbit" name="penerbit" class="form-control" style="border-radius: 8px;">
                 </div>
-
                 <div class="col-12">
                     <label class="small fw-bold">DESKRIPSI BUKU</label>
-                    <textarea id="edit_deskripsi" name="deskripsi" class="form-control" rows="3" style="border-radius: 8px;" placeholder="Masukkan ringkasan buku..."></textarea>
+                    <textarea id="edit_deskripsi" name="deskripsi" class="form-control" rows="3" style="border-radius: 8px;"></textarea>
                 </div>
-
                 <div class="col-md-4">
                     <label class="small fw-bold">TAHUN TERBIT</label>
-                    <input type="number" id="edit_tahun" name="tahun_terbit" class="form-control" style="border-radius: 8px;" placeholder="2024">
+                    <input type="number" id="edit_tahun" name="tahun_terbit" class="form-control" style="border-radius: 8px;">
                 </div>
                 <div class="col-md-4">
                     <label class="small fw-bold">STOK</label>
-                    <input type="number" id="edit_stok" name="stok" class="form-control" style="border-radius: 8px;" placeholder="0">
+                    <input type="number" id="edit_stok" name="stok" class="form-control" style="border-radius: 8px;">
                 </div>
                 <div class="col-md-4">
                     <label class="small fw-bold">DENDA/HARI</label>
-                    <input type="number" id="edit_denda" name="denda_per_hari" class="form-control" style="border-radius: 8px;" placeholder="5000">
+                    <input type="number" id="edit_denda" name="denda_per_hari" class="form-control" style="border-radius: 8px;">
                 </div>
-
                 <div class="col-12">
                     <label class="small fw-bold">COVER BUKU (Kosongkan jika tidak diubah)</label>
                     <input type="file" name="cover" class="form-control" style="border-radius: 8px;">
                 </div>
             </div>
-            
             <div class="mt-4 text-end">
                 <button type="button" class="btn btn-light me-2" onclick="hideEdit()">Batal</button>
                 <button type="submit" class="btn btn-primary" style="background-color: #06b6d4; border: none; border-radius: 8px; font-weight: bold;">Update Data</button>
@@ -286,16 +274,13 @@
 <div id="modalDetail" class="modal-custom-overlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
     <div class="modal-custom-card shadow-lg" style="background: white; padding: 30px; border-radius: 20px; width: 95%; max-width: 650px; position: relative;">
         <button class="btn-close position-absolute" style="top: 25px; right: 25px;" onclick="hideDetail()"></button>
-        
         <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-info-circle me-2 text-primary"></i>Informasi Lengkap Buku</h4>
-        
         <div class="row g-4 align-items-start">
             <div class="col-md-5 text-center">
                 <div class="bg-light rounded-3 shadow-sm border p-2" style="width: 100%; height: 320px;">
                     <img id="det_cover" src="" class="img-fluid rounded-2" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
             </div>
-            
             <div class="col-md-7">
                 <div class="table-responsive">
                     <table class="table table-sm table-borderless mb-0">
@@ -311,7 +296,6 @@
                 </div>
             </div>
         </div>
-        
         <div class="mt-4 pt-3 border-top text-end">
             <button class="btn btn-dark px-4" onclick="hideDetail()" style="border-radius: 10px;">Tutup</button>
         </div>
@@ -320,41 +304,30 @@
 
 <script>
     // --- MODAL TAMBAH ---
-    // Fungsi simpel buat nampilin dan nyembunyiin modal tambah pakai gaya 'flex' supaya centering-nya rapi
     function showTambah() { document.getElementById('modalTambah').style.display = 'flex'; }
     function hideTambah() { document.getElementById('modalTambah').style.display = 'none'; }
 
     // --- MODAL DETAIL ---
-    // Fungsi buat narik data dari tombol yang diklik dan nembakin nilainya ke elemen HTML di modal detail
     function showDetail(data) {
         document.getElementById('modalDetail').style.display = 'flex';
-        // Mapping data dari object 'data' ke ID HTML masing-masing
         document.getElementById('det_id').innerText = '#B-' + data.id_buku;
         document.getElementById('det_judul').innerText = data.judul;
-        document.getElementById('det_isbn').innerText = data.isbn || '-'; // Kalau ISBN kosong, tampilkan tanda minus
+        document.getElementById('det_isbn').innerText = data.isbn || '-';
         document.getElementById('det_penulis').innerText = data.penulis;
         document.getElementById('det_penerbit').innerText = data.penerbit || '-';
         document.getElementById('det_kategori').innerText = data.kategori || '-';
         document.getElementById('det_tahun').innerText = data.tahun_terbit || '-';
-        
-        // Format denda jadi angka dengan ribuan (contoh: 5.000)
         const denda = data.denda_per_hari ? parseInt(data.denda_per_hari).toLocaleString() : '0';
         document.getElementById('det_denda').innerText = 'Rp ' + denda;
-        
-        // Atur path gambar cover, kalau nggak ada cover pake 'default.jpg'
         const coverPath = "<?= base_url('uploads/cover/') ?>/" + (data.cover || 'default.jpg');
         document.getElementById('det_cover').src = coverPath;
     }
     function hideDetail() { document.getElementById('modalDetail').style.display = 'none'; }
 
     // --- MODAL EDIT ---
-    // Fungsi paling vital: mindahin data lama ke input form supaya admin tinggal ubah aja
     function showEdit(data) {
         const form = document.getElementById('formEdit');
-        // Ganti tujuan (action) form secara dinamis ke route update berdasarkan ID buku
         form.action = "<?= base_url('buku/update') ?>/" + data.id_buku;
-
-        // Isi otomatis setiap field input berdasarkan data yang dipilih
         document.getElementById('edit_judul').value = data.judul;
         document.getElementById('edit_penulis').value = data.penulis;
         document.getElementById('edit_isbn').value = data.isbn || '';
@@ -364,63 +337,44 @@
         document.getElementById('edit_tahun').value = data.tahun_terbit;
         document.getElementById('edit_stok').value = data.stok;
         document.getElementById('edit_denda').value = data.denda_per_hari;
-
         document.getElementById('modalEdit').style.display = 'flex';
     }
     function hideEdit() { document.getElementById('modalEdit').style.display = 'none'; }
 
-    // --- LOGIC TUTUP MODAL ---
-    // Fitur UX: Kalau user klik di area gelap (overlay) di luar card modal, modal otomatis nutup
     window.onclick = function(event) {
         const mTambah = document.getElementById('modalTambah');
         const mEdit = document.getElementById('modalEdit');
         const mDetail = document.getElementById('modalDetail');
-        
         if (event.target == mTambah) hideTambah();
         if (event.target == mEdit) hideEdit();
         if (event.target == mDetail) hideDetail();
     }
 
-    // --- NOTIFIKASI SUKSES (SWEETALERT) ---
-    // Cek apakah ada flashdata 'msg' dari Controller, kalau ada sikat pake SweetAlert
+    // --- NOTIFIKASI SUKSES ---
     <?php if (session()->getFlashdata('msg')) : ?>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <script>
-        // Pakai timeout biar render engine browser selesai dulu, baru munculin pop-up
-        setTimeout(function() {
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: '<?= session()->getFlashdata('msg') ?>',
-                showConfirmButton: false,
-                timer: 2500, // Hilang otomatis dalam 2.5 detik
-                zIndex: 9999
-            });
-        }, 500); 
-    </script>
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: '<?= session()->getFlashdata('msg') ?>',
+            showConfirmButton: false,
+            timer: 2500
+        });
     <?php endif; ?>
 
-    // --- SWEETALERT HAPUS (DELEGASI EVENT) ---
-    // Pake Event Delegation supaya tombol hapus tetep jalan walaupun data di-load pake filter/pencarian
+    // --- SWEETALERT HAPUS ---
     document.addEventListener('click', function (e) {
         if (e.target.closest('.btn-hapus')) {
-            e.preventDefault(); // Stop link biar nggak langsung pindah halaman
+            e.preventDefault();
             const url = e.target.closest('.btn-hapus').getAttribute('href');
-
-            // Munculin konfirmasi biar admin nggak salah pencet
             Swal.fire({
                 title: 'Hapus Buku?',
-                text: "Data yang dihapus nggak bisa dikembalikan lagi loh!",
+                text: "Data yang dihapus nggak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
-                cancelButtonColor: '#2d3436',
-                confirmButtonText: 'Ya, Hapus Saja!',
-                cancelButtonText: 'Batal',
-                customClass: {
-                    popup: 'rounded-4'
-                }
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
             }).then((result) => {
-                // Kalau user klik 'Ya', baru pindah ke URL hapus di Controller
                 if (result.isConfirmed) {
                     window.location.href = url;
                 }
@@ -436,26 +390,61 @@
 </div>
 
 <style>
-    /* CSS ini biar tampilannya Teal dan Bulat-bulat kayak badge di tabel lu */
-    .pagination-wrapper ul { 
-        margin: 0; padding: 0; display: flex; list-style: none; gap: 5px; 
-    }
-    .pagination-wrapper li a, .pagination-wrapper li span {
+    /* Wrapper luar biar tetep lonjong estetik */
+    .pagination-wrapper {
+        background-color: white;
+        border-radius: 50px;
+        padding: 5px 15px; /* Kasih ruang dikit di dalam area putih */
         display: inline-block;
-        padding: 8px 16px; 
-        border-radius: 50px; 
-        color: #008080; /* Warna Teal biar matching */
-        text-decoration: none; 
-        font-weight: bold;
-        transition: all 0.3s;
     }
-    .pagination-wrapper li.active span { 
-        background-color: #008080; 
-        color: white !important; 
+
+    .pagination-wrapper ul {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        list-style: none !important;
     }
+
+    /* INI KUNCI BIAR BULAT SEMPURNA */
+    .pagination-wrapper li a, 
+    .pagination-wrapper li span {
+        display: grid !important; /* Grid lebih stabil buat centering */
+        place-items: center !important; /* Angka bener-bener di tengah */
+        
+        /* Kunci ukuran mati: Luas harus sama */
+        width: 35px !important; 
+        height: 35px !important;
+        
+        border-radius: 50% !important; /* Paksa jadi bulat */
+        color: #008080 !important;
+        text-decoration: none !important;
+        font-weight: bold !important;
+        font-size: 14px !important;
+        
+        /* Hapus semua padding/margin bawaan yang bikin lonjong */
+        padding: 0 !important;
+        margin: 0 !important;
+        transition: all 0.2s ease;
+    }
+
+    /* Efek Pas Diklik (Mendem) */
+    .pagination-wrapper li a:active {
+        transform: scale(0.85); /* Agak kecil dikit pas diteken */
+        background-color: #008080;
+        color: white !important;
+    }
+
+    /* Warna pas Aktif */
+    .pagination-wrapper li.active span {
+        background-color: #008080 !important;
+        color: white !important;
+    }
+
+    /* Efek Hover */
     .pagination-wrapper li a:hover {
-        background-color: #e6f2f2;
-        transform: translateY(-2px);
+        background-color: #e6f2f2 !important;
     }
 </style>
 

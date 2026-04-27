@@ -143,7 +143,7 @@
                             <td class="text-center pe-4">
                                 <div class="d-flex justify-content-center gap-1">
                                     <?php if (session('role') == 'anggota') : ?>
-    <?php if ($t['status'] == 'dipinjam') : ?>
+                        <?php if ($t['status'] == 'dipinjam') : ?>
         <?php if ($total_denda > 0) : ?>
             <button onclick="modalBayar(<?= $t['id_pinjam'] ?>, <?= $total_denda ?>)" class="btn btn-sm btn-primary" style="border-radius: 8px; font-size: 11px;">Ajukan</button>
         <?php else : ?>
