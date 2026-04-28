@@ -1,9 +1,7 @@
 <?php
 
-// Namespace untuk menentukan lokasi file Controller
 namespace App\Controllers;
 
-// Mengimport model-model yang diperlukan untuk olah data
 use App\Models\PeminjamanModel;
 use App\Models\BukuModel; 
 
@@ -12,214 +10,177 @@ class Peminjaman extends BaseController
     // --- FITUR UMUM ---
 
     public function index()
-{
-    // Inisialisasi model peminjaman
-    $model = new PeminjamanModel();
-    
-    // Mengambil filter 'cari' dan 'status' dari parameter URL (GET)
-    $cari   = $this->request->getGet('cari');
-    $status = $this->request->getGet('status');
+    {
+        $model = new PeminjamanModel();
+        $cari   = $this->request->getGet('cari');
+        $status = $this->request->getGet('status');
 
-    // Memulai query builder dengan join ke tabel users dan buku
-    $builder = $model->select('peminjaman.*, users.nama, buku.judul, buku.denda_per_hari')
-                     ->join('users', 'users.id = peminjaman.id_user')
-                     ->join('buku', 'buku.id_buku = peminjaman.id_buku');
+        $builder = $model->select('peminjaman.*, users.nama, buku.judul, buku.denda_per_hari')
+                         ->join('users', 'users.id = peminjaman.id_user')
+                         ->join('buku', 'buku.id_buku = peminjaman.id_buku');
 
-    // Jika ada keyword pencarian
-    if ($cari) {
-        $builder->groupStart()
-                ->like('users.nama', $cari)
-                ->orLike('buku.judul', $cari)
-                ->groupEnd();
+        if ($cari) {
+            $builder->groupStart()
+                    ->like('users.nama', $cari)
+                    ->orLike('buku.judul', $cari)
+                    ->groupEnd();
+        }
+
+        if ($status) {
+            $builder->where('peminjaman.status', $status);
+        }
+
+        if (session('role') == 'anggota') {
+            $builder->where('peminjaman.id_user', session('id'));
+        }
+
+        $data['transaksi'] = $model->orderBy('peminjaman.id_pinjam', 'DESC')->paginate(10, 'transaksi');
+        $data['pager'] = $model->pager;
+        $data['cari'] = $cari;
+        $data['status_saat_ini'] = $status;
+
+        return view('peminjaman/index', $data);
     }
-
-    // Jika user memfilter berdasarkan status tertentu
-    if ($status) {
-        $builder->where('peminjaman.status', $status);
-    }
-
-    // Keamanan: Jika yang login 'anggota', batasi hanya milik dia sendiri
-    if (session('role') == 'anggota') {
-        $builder->where('peminjaman.id_user', session('id'));
-    }
-
-    // --- PERUBAHAN DISINI: Gunakan paginate() untuk menggantikan findAll() ---
-    // Kita urutkan dari ID terbaru, lalu ambil 10 data per halaman
-    $data['transaksi'] = $model->orderBy('peminjaman.id_pinjam', 'DESC')->paginate(10, 'transaksi');
-    
-    // Kirim objek pager ke view agar bisa nampilin link halaman
-    $data['pager'] = $model->pager;
-    
-    // Kirim balik data pencarian agar form filter tetap terisi
-    $data['cari'] = $cari;
-    $data['status_saat_ini'] = $status;
-
-    // Tampilkan halaman daftar peminjaman
-    return view('peminjaman/index', $data);
-}
 
     // --- FITUR KHUSUS ANGGOTA ---
 
-    // Menampilkan katalog buku yang tersedia untuk dipinjam oleh anggota
     public function katalog()
     {
-        // Koneksi database manual
         $db = \Config\Database::connect();
-        // Mengambil input kategori dari dropdown filter
         $kategori_dipilih = $this->request->getVar('filter_kategori'); 
         
         $builder = $db->table('buku');
 
-        // Filter buku berdasarkan kategori jika user memilih kategori tertentu
         if ($kategori_dipilih && $kategori_dipilih != 'Semua') {
             $builder->where('kategori', $kategori_dipilih);
         }
 
-        // Ambil hasil filter buku
         $data['buku'] = $builder->get()->getResultArray();
-        // Default kategori ke 'Semua' jika tidak ada yang dipilih
         $data['kategori_aktif'] = $kategori_dipilih ?? 'Semua';
 
         return view('peminjaman/katalog', $data);
     }
 
-    // Fungsi bagi anggota untuk melakukan peminjaman buku secara mandiri
     public function pinjam_mandiri()
-    {
-        $db = \Config\Database::connect();
-        // Mengambil ID user dari session yang aktif
-        $id_user = session()->get('id');
-        // Mengambil ID buku yang ingin dipinjam dari form POST
-        $id_buku = $this->request->getPost('id_buku');
+{
+    $db = \Config\Database::connect();
+    $id_user = session()->get('id');
+    $id_buku = $this->request->getPost('id_buku');
 
-        // Validasi jika user tidak memilih buku
-        if (!$id_buku) {
-            return redirect()->back()->with('error', 'Pilih buku terlebih dahulu!');
-        }
-
-        // Cek jumlah buku yang sedang dipinjam (Maksimal 3 buku)
-        $jumlah = $db->table('peminjaman')
-            ->where('id_user', $id_user)
-            ->whereIn('status', ['dipinjam', 'diajukan'])
-            ->countAllResults();
-
-        // Jika sudah pinjam 3, tolak peminjaman baru
-        if ($jumlah >= 3) {
-            return redirect()->back()->with('error', 'Maaf, maksimal pinjam 3 buku!');
-        }
-
-        // Set tanggal kembali otomatis 7 hari dari hari ini
-        $tgl_kembali = date('Y-m-d', strtotime('+7 days'));
-        
-        // Simpan data peminjaman ke database
-        $db->table('peminjaman')->insert([
-            'id_user'     => $id_user,
-            'id_buku'     => $id_buku,
-            'tgl_pinjam'  => date('Y-m-d'),
-            'tgl_kembali' => $tgl_kembali,
-            'denda'       => 0,
-            'status'      => 'dipinjam'
-        ]);
-
-        // Kurangi stok buku tersebut sebanyak 1 secara otomatis
-        $db->query("UPDATE buku SET stok = stok - 1 WHERE id_buku = ?", [$id_buku]);
-
-        return redirect()->to('/peminjaman')->with('msg', 'Buku berhasil dipinjam, selamat membaca!');
+    if (!$id_buku) {
+        return redirect()->back()->with('error', 'Pilih buku terlebih dahulu!');
     }
 
-    // Fungsi bagi anggota untuk lapor akan mengembalikan buku
+    // --- PROTEKSI DENDA REAL-TIME ---
+    $pinjaman = $db->table('peminjaman')
+                   ->where('id_user', $id_user)
+                   ->where('status !=', 'kembali') // Cari buku yang belum balik
+                   ->get()->getResultArray();
+
+    foreach ($pinjaman as $p) {
+        $tgl_kembali = new \DateTime($p['tgl_kembali']);
+        $tgl_sekarang = new \DateTime(date('Y-m-d'));
+
+        // CEK 1: Berdasarkan Tanggal (Denda berjalan)
+        if ($tgl_sekarang > $tgl_kembali) {
+            return redirect()->back()->with('error', 'Gagal! Kamu punya buku yang telat dikembalikan. Lunasi denda dulu!');
+        }
+        
+        // CEK 2: Berdasarkan Status Bayar di DB
+        if ($p['denda'] > 0 && $p['status_bayar'] != 'lunas') {
+            return redirect()->back()->with('error', 'Gagal! Kamu masih punya denda yang belum dibayar.');
+        }
+    }
+
+    // --- PROTEKSI JUMLAH PINJAM ---
+    if (count($pinjaman) >= 3) {
+        return redirect()->back()->with('error', 'Maksimal pinjam 3 buku!');
+    }
+
+    // --- PROSES INSERT ---
+    $db->table('peminjaman')->insert([
+        'id_user'      => $id_user,
+        'id_buku'      => $id_buku,
+        'tgl_pinjam'   => date('Y-m-d'),
+        'tgl_kembali'  => date('Y-m-d', strtotime('+7 days')),
+        'denda'        => 0,
+        'status'       => 'dipinjam',
+        'status_bayar' => 'belum'
+    ]);
+
+    $db->query("UPDATE buku SET stok = stok - 1 WHERE id_buku = ?", [$id_buku]);
+
+    return redirect()->to('/peminjaman')->with('msg', 'Berhasil meminjam buku!');
+}
+
     public function ajukan_kembali($id)
     {
         $db = \Config\Database::connect();
-        
-        // Update status peminjaman menjadi 'diajukan' (menunggu verifikasi admin)
-        $update = $db->table('peminjaman')
-            ->where('id_pinjam', $id)
-            ->update([
-                'status' => 'diajukan' 
-            ]);
-
-        if ($update) {
-            return redirect()->to('/peminjaman')->with('msg', 'Permintaan pengembalian berhasil diajukan!');
-        }
-
-        return redirect()->to('/peminjaman')->with('error', 'Gagal mengajukan pengembalian.');
+        $update = $db->table('peminjaman')->where('id_pinjam', $id)->update(['status' => 'diajukan']);
+        return ($update) ? redirect()->to('/peminjaman')->with('msg', 'Berhasil diajukan!') : redirect()->to('/peminjaman')->with('error', 'Gagal!');
     }
 
-    // --- FITUR KONFIRMASI ADMIN (Saat Admin menerima fisik buku) ---
-    // --- FITUR KONFIRMASI ADMIN (Saat Admin menerima fisik buku) ---
-    public function konfirmasi_kembali($id) {
-        $db = \Config\Database::connect();
-        
-        // Cari data peminjaman berdasarkan ID
-        $dataLama = $db->table('peminjaman')->getWhere(['id_pinjam' => $id])->getRowArray();
-        
-        if (!$dataLama) {
-            return redirect()->back()->with('error', 'Data tidak ditemukan.');
-        }
+    // --- FITUR KONFIRMASI ADMIN ---
+   public function konfirmasi_kembali($id) {
+    $db = \Config\Database::connect();
+    $dataLama = $db->table('peminjaman')->getWhere(['id_pinjam' => $id])->getRowArray();
+    
+    if (!$dataLama) return redirect()->back()->with('error', 'Data tidak ditemukan.');
 
-        // Simpan id_buku biar kita tau buku mana yang mau ditambah stoknya
-        $id_buku = $dataLama['id_buku'];
+    $id_buku = $dataLama['id_buku'];
+    $tgl_kembali = new \DateTime($dataLama['tgl_kembali']);
+    $tgl_sekarang = new \DateTime(date('Y-m-d'));
+    $denda = 0;
 
-        // Logic hitung denda: bandingkan tanggal kembali dengan hari ini
-        $tgl_kembali = new \DateTime($dataLama['tgl_kembali']);
-        $tgl_sekarang = new \DateTime(date('Y-m-d'));
-        $denda = 0;
-
-        if ($tgl_sekarang > $tgl_kembali) {
-            $selisih = $tgl_sekarang->diff($tgl_kembali);
-            $denda = $selisih->days * 5000; 
-        }
-
-        // 1. Update tabel peminjaman
-        $db->table('peminjaman')->where('id_pinjam', $id)->update([
-            'status'           => 'kembali',
-            'tgl_dikembalikan' => date('Y-m-d'),
-            'denda'            => $denda,
-            'status_bayar'     => 'lunas' 
-        ]);
-
-        // 2. --- INI DIA TAMBAHANNYA: BALIKIN STOK BUKU (+1) ---
-        // Mirip sama logika di pinjam_mandiri tapi ini pake PLUS (+)
-        $db->query("UPDATE buku SET stok = stok + 1 WHERE id_buku = ?", [$id_buku]);
-        
-        return redirect()->to('/peminjaman')->with('msg', 'Buku telah dikembalikan!');
+    if ($tgl_sekarang > $tgl_kembali) {
+        $selisih = $tgl_sekarang->diff($tgl_kembali);
+        $denda = $selisih->days * 5000; 
     }
 
-    // Menghapus data transaksi peminjaman
+    // --- LOGIKA ANTI-RESET DISINI ---
+    // Jika sebelumnya user sudah upload bukti (proses), maka langsung set lunas.
+    // Jika denda 0, juga lunas.
+    // Selain itu baru 'belum'.
+    $status_bayar_baru = 'belum';
+    if ($denda == 0 || $dataLama['status_bayar'] == 'proses' || $dataLama['status_bayar'] == 'lunas') {
+        $status_bayar_baru = 'lunas';
+    }
+
+    $db->table('peminjaman')->where('id_pinjam', $id)->update([
+        'status'           => 'kembali',
+        'tgl_dikembalikan' => date('Y-m-d'),
+        'denda'            => $denda,
+        'status_bayar'     => $status_bayar_baru 
+    ]);
+
+    $db->query("UPDATE buku SET stok = stok + 1 WHERE id_buku = ?", [$id_buku]);
+    return redirect()->to('/peminjaman')->with('msg', 'Buku telah dikembalikan dan status diperbarui!');
+}
+
     public function hapus($id)
     {
         $db = \Config\Database::connect();
-        // Cari data yang mau dihapus
         $data = $db->table('peminjaman')->where('id_pinjam', $id)->get()->getRow();
-
         if ($data) {
-            // Jalankan perintah hapus
             $db->table('peminjaman')->where('id_pinjam', $id)->delete();
             return redirect()->to('/peminjaman')->with('msg', 'Data riwayat berhasil dihapus!');
         }
-
-        return redirect()->to('/peminjaman')->with('error', 'Gagal menghapus data.');
+        return redirect()->to('/peminjaman')->with('error', 'Gagal!');
     }
 
-    // Fungsi bagi anggota untuk bayar denda via upload bukti transfer
     public function bayar_dan_ajukan($id)
     {
-        // Ambil metode bayar dan file bukti dari form
         $metode = $this->request->getPost('metode_bayar');
         $fileBukti = $this->request->getFile('bukti_pembayaran');
         $namaFile = null;
 
-        // Jika bayar via transfer, simpan file gambarnya ke server
-        if ($metode == 'tf') {
-            if ($fileBukti->isValid() && !$fileBukti->hasMoved()) {
-                $namaFile = $fileBukti->getRandomName(); // Nama file random
-                $fileBukti->move('uploads/bukti_bayar/', $namaFile); // Simpan ke folder
-            }
+        if ($metode == 'tf' && $fileBukti->isValid() && !$fileBukti->hasMoved()) {
+            $namaFile = $fileBukti->getRandomName();
+            $fileBukti->move('uploads/bukti_bayar/', $namaFile);
         }
 
         $db = \Config\Database::connect();
-        // Update status ke 'diajukan' dan status bayar ke 'proses' untuk diverifikasi admin
+        // --- PERBAIKAN DISINI: status_bayar jadi 'proses' bukan langsung lunas ---
         $db->table('peminjaman')->where('id_pinjam', $id)->update([
             'status'           => 'diajukan',
             'status_bayar'     => 'proses', 
@@ -227,6 +188,59 @@ class Peminjaman extends BaseController
             'tgl_dikembalikan' => date('Y-m-d')
         ]);
 
-        return redirect()->to(base_url('peminjaman'))->with('msg', 'Berhasil diajukan!');
+        return redirect()->to(base_url('peminjaman'))->with('msg', 'Pembayaran sedang diproses admin!');
     }
+
+public function update_denda($id)
+{
+    $db = \Config\Database::connect();
+    $data = $db->table('peminjaman')->getWhere(['id_pinjam' => $id])->getRowArray();
+
+    if ($data) {
+        $tgl_kembali = new \DateTime($data['tgl_kembali']);
+        $tgl_sekarang = new \DateTime(date('Y-m-d'));
+        $denda = 0;
+
+        // Hitung denda real-time
+        if ($tgl_sekarang > $tgl_kembali) {
+            $selisih = $tgl_sekarang->diff($tgl_kembali);
+            $denda = $selisih->days * 5000;
+        }
+
+        // Simpan angka denda ke database agar tidak berubah-ubah lagi
+        $db->table('peminjaman')->where('id_pinjam', $id)->update([
+            'denda' => $denda
+        ]);
+        
+        return redirect()->back()->with('msg', 'Data denda berhasil diperbarui!');
+    }
+    return redirect()->back()->with('error', 'Data tidak ditemukan!');
+}
+
+public function lunas_denda($id)
+{
+    $db = \Config\Database::connect();
+    
+    // 1. Ambil data dulu buat pastiin dendanya dicatat
+    $data = $db->table('peminjaman')->getWhere(['id_pinjam' => $id])->getRowArray();
+    
+    // 2. Hitung denda terakhir biar angkanya gak 0 di DB
+    $tgl_kembali = new \DateTime($data['tgl_kembali']);
+    $tgl_sekarang = new \DateTime(date('Y-m-d'));
+    $denda_akhir = 0;
+    
+    if ($tgl_sekarang > $tgl_kembali) {
+        $selisih = $tgl_sekarang->diff($tgl_kembali);
+        $denda_akhir = $selisih->days * 5000;
+    }
+
+    // 3. Update status_bayar jadi LUNAS secara permanen di DB
+    $db->table('peminjaman')->where('id_pinjam', $id)->update([
+        'denda'        => $denda_akhir,
+        'status_bayar' => 'lunas' // Ini kuncinya biar jadi HIJAU
+    ]);
+
+    return redirect()->back()->with('msg', 'Pembayaran denda telah dikonfirmasi dan status jadi Lunas!');
+}
+
 }

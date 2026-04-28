@@ -116,7 +116,6 @@
                         <label class="form-label small fw-bold text-secondary">Role</label>
                         <select name="role" class="form-select" required>
                             <option value="" disabled selected>Pilih Role</option>
-                            <option value="admin">Admin</option>
                             <option value="anggota">Anggota</option>
                         </select>
                     </div>

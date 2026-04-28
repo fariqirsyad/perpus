@@ -107,28 +107,58 @@
                             </td>
 
                             <td class="text-center">
-                                <div class="d-flex flex-column align-items-center">
-                                    <?php if ($total_denda > 0) : ?>
-                                    <span class="badge bg-light text-danger border border-danger mb-1" 
-                                            style="border-radius: 8px; padding: 5px 8px; cursor: pointer; font-size: 11px;" 
-                                            onclick="showDetailDenda('<?= $t['tgl_kembali'] ?>', '<?= ($t['status'] == 'kembali') ? $t['tgl_dikembalikan'] : date('Y-m-d') ?>', <?= $total_denda ?>)"
-                                            title="Klik untuk detail denda">
-                                            Rp <?= number_format($total_denda, 0, ',', '.') ?>
-                                    </span>
+    <div class="d-flex flex-column align-items-center">
+        <?php 
+            // 1. Ambil data asli dari DB
+            $denda_db = (int)$t['denda']; // Ambil angka denda di DB
+            $st_bayar = $t['status_bayar']; // 'belum', 'proses', 'lunas'
+            $denda_auto = 0;
+            
+            // 2. Hitung denda otomatis HANYA jika BELUM KEMBALI
+            if ($t['status'] !== 'kembali') {
+                $tgl_target = new \DateTime($t['tgl_kembali']);
+                $tgl_now = new \DateTime(date('Y-m-d')); // Hari ini: 2026-04-28
+                
+                if ($tgl_now > $tgl_target) {
+                    $selisih = $tgl_now->diff($tgl_target);
+                    $denda_auto = $selisih->days * 5000;
+                }
+            }
 
-                                    <?php 
-                                    $st_color = ($t['status_bayar'] == 'lunas') ? 'bg-success' : (($t['status_bayar'] == 'proses') ? 'bg-info' : 'bg-secondary');
-                                    $st_label = ($t['status_bayar'] == 'lunas') ? 'Lunas' : (($t['status_bayar'] == 'proses') ? 'Proses' : 'Belum Bayar');
-                                    ?>
-                                    <span class="badge <?= $st_color ?>" style="font-size: 9px; border-radius: 4px; padding: 2px 6px;">
-                                        <?= $st_label ?>
-                                    </span>
+            // Tentukan angka yang muncul (Prioritas angka di DB jika sudah ada)
+            $total_tampil = ($denda_db > 0) ? $denda_db : $denda_auto;
+        ?>
 
-                                    <?php else : ?>
-                                        <span class="text-muted fw-bold">-</span>
-                                    <?php endif; ?>
-                                </div>
-                            </td>
+        <?php if ($total_tampil > 0) : ?>
+            <span class="badge bg-light text-danger border border-danger mb-1" 
+                  style="border-radius: 8px; padding: 5px 8px; cursor: pointer; font-size: 11px;" 
+                  onclick="showDetailDenda('<?= $t['tgl_kembali'] ?>', '<?= ($t['status'] == 'kembali') ? $t['tgl_dikembalikan'] : date('Y-m-d') ?>', <?= $total_tampil ?>)">
+                Rp <?= number_format($total_tampil, 0, ',', '.') ?>
+            </span>
+
+            <?php 
+                if ($st_bayar === 'lunas') {
+                    // Jika di database sudah lunas, langsung HIJAU tanpa syarat lain
+                    $warna = 'bg-success';
+                    $label = 'Lunas';
+                } elseif ($st_bayar === 'proses') {
+                    $warna = 'bg-info text-dark';
+                    $label = 'Proses';
+                } else {
+                    // Jika denda ada tapi status di DB masih 'belum'
+                    $warna = 'bg-danger';
+                    $label = 'Belum Lunas';
+                }
+            ?>
+            <span class="badge <?= $warna ?>" style="font-size: 9px; border-radius: 4px; padding: 2px 6px;">
+                <?= $label ?>
+            </span>
+
+        <?php else : ?>
+            <span class="text-muted fw-bold">-</span>
+        <?php endif; ?>
+    </div>
+</td>
 
                             <td class="text-center">
                                 <?php if ($t['status'] == 'dipinjam') : ?>

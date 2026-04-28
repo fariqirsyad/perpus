@@ -56,7 +56,8 @@
     </ul>
 
     <div class="mt-auto p-4" style="border-top: 1px solid #e2e8f0; background: #fafbfc;">
-        <div class="d-flex align-items-center mb-3">
+    <div class="dropdown">
+        <div class="d-flex align-items-center mb-0 dropdown-toggle" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
             <?php if (session('foto')) : ?>
                 <img src="<?= base_url('uploads/users/' . session('foto')) ?>" 
                      class="rounded-circle shadow-sm" 
@@ -73,24 +74,38 @@
                 <small class="text-capitalize d-block text-muted" style="font-size: 11px;"><?= session('role') ?></small>
             </div>
         </div>
-        
-<div class="px-3"> <?php if (session()->get('role') == 'admin') : ?>
-        <a href="<?= base_url('/backup') ?>" class="btn d-flex align-items-center justify-content-center gap-2 w-100 shadow-none border-0 mb-2" 
-           style="background: #e8f5e9; color: #2e7d32; border-radius: 12px; height: 45px; font-size: 13px; font-weight: 600; transition: all 0.3s;">
-            <i class="bi bi-shield-check"></i> Backup System
-        </a>
-    <?php endif; ?>
 
-    <a href="<?= base_url('/logout') ?>" 
-       id="btn-logout"
-       class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2 shadow-none" 
-       style="border-radius: 12px; height: 45px; font-weight: 600; font-size: 13px; border-width: 1.5px;">
-        <i class="bi bi-box-arrow-right"></i> Keluar Aplikasi
-    </a>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2 w-100" aria-labelledby="profileDropdown" style="border-radius: 12px; margin-bottom: 10px;">
+            <?php if (session()->get('role') == 'admin') : ?>
+                <li>
+                    <a href="<?= base_url('/backup') ?>" class="dropdown-item d-flex align-items-center gap-2 py-2" 
+                       style="color: #2e7d32; font-size: 13px; font-weight: 600; border-radius: 8px;">
+                        <i class="bi bi-shield-check"></i> Backup System
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+            <?php endif; ?>
 
-        </div>
+            <li>
+                <a href="<?= base_url('/logout') ?>" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" 
+                   style="font-size: 13px; font-weight: 600; border-radius: 8px;">
+                    <i class="bi bi-box-arrow-right"></i> Keluar Aplikasi
+                </a>
+            </li>
+        </ul>
     </div>
 </div>
+</div>
+
+
+<style>
+    .dropdown-toggle::after {
+        display: none !important;
+    }
+    .dropdown-item:hover {
+        background-color: #f8fafc;
+    }
+</style>
 
 
 <style>
