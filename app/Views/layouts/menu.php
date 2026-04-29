@@ -87,10 +87,10 @@
             <?php endif; ?>
 
             <li>
-                <a href="<?= base_url('/logout') ?>" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" 
-                   style="font-size: 13px; font-weight: 600; border-radius: 8px;">
-                    <i class="bi bi-box-arrow-right"></i> Keluar Aplikasi
-                </a>
+                <a href="<?= base_url('/logout') ?>" id="btn-logout" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" 
+       style="font-size: 13px; font-weight: 600; border-radius: 8px;">
+        <i class="bi bi-box-arrow-right"></i> Keluar Aplikasi
+    </a>
             </li>
         </ul>
     </div>
@@ -155,25 +155,29 @@
 </style>
 
 <script>
-document.getElementById('btn-logout').addEventListener('click', function(e) {
-    e.preventDefault(); // Nahan biar gak langsung logout
-    const url = this.getAttribute('href');
+// Pakai document click listener supaya lebih responsif buat elemen dinamis/dropdown
+document.addEventListener('click', function (e) {
+    // Cek apakah yang diklik itu id btn-logout atau elemen di dalemnya
+    const btn = e.target.closest('#btn-logout');
+    
+    if (btn) {
+        e.preventDefault(); 
+        const url = btn.getAttribute('href');
 
-    Swal.fire({
-        title: 'Yakin mau keluar?',
-        text: "Sesi kamu akan berakhir di sini, Bro.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#2d3436', // Warna hitam pekat sesuai tombol login kamu
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Ya, Keluar!',
-        cancelButtonText: 'Batal',
-        borderRadius: '20px'
-        
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = url; // Baru deh pindah ke link logout
-        }
-    })
+        Swal.fire({
+            title: 'Yakin mau keluar?',
+            text: "Sesi kamu akan berakhir di sini, Bro.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#2d3436',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Keluar!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        });
+    }
 });
 </script>
